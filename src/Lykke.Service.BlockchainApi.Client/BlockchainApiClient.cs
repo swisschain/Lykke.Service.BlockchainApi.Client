@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Client.Results;
@@ -19,12 +18,16 @@ namespace Lykke.Service.BlockchainApi.Client
     [PublicAPI]
     public sealed class BlockchainApiClient : IBlockchainApiClient
     {
+        public string HostUrl { get; }
+
         private readonly HttpClient _httpClient;
         private readonly IBlockchainApi _api;
         private readonly ApiRunner _runner;
 
-        public BlockchainApiClient(ILog log, string hostUrl)
+        public BlockchainApiClient(string hostUrl, int retriesCount = 5)
         {
+            HostUrl = hostUrl ?? throw new ArgumentNullException(nameof(hostUrl));
+
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(hostUrl),
@@ -39,7 +42,7 @@ namespace Lykke.Service.BlockchainApi.Client
 
             _api = RestService.For<IBlockchainApi>(_httpClient);
 
-            _runner = new ApiRunner(log, defaultRetriesCount: 5);
+            _runner = new ApiRunner(retriesCount);
         }
 
         /// <inheritdoc />

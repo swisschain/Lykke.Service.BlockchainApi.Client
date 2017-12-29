@@ -11,6 +11,8 @@ namespace Lykke.Service.BlockchainApi.Client
     [PublicAPI]
     public interface IBlockchainApiClient : IDisposable
     {
+        string HostUrl { get; }
+
         /// <summary>
         /// Checks if Blockchain API service alive and returns some common metadata
         /// </summary>
