@@ -8,8 +8,11 @@ namespace Lykke.Service.BlockchainApi.Contract.Responses.PendingEvents
     public class BasePendingEventContract
     {
         [JsonProperty("operationId")]
-        public string OperationId { get; set; }
+        public Guid OperationId { get; set; }
 
+        /// <summary>
+        /// Should be UTC DateTime
+        /// </summary>
         [JsonProperty("timestamp")]
         public DateTime Timestamp { get; set; }
 
