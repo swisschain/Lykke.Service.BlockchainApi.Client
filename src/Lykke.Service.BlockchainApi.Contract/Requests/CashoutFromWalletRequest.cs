@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -7,6 +8,9 @@ namespace Lykke.Service.BlockchainApi.Contract.Requests
     [PublicAPI]
     public class CashoutFromWalletRequest
     {
+        [JsonProperty("operationId")]
+        public Guid OperationId { get; set; }
+
         [JsonProperty("to")]
         public string To { get; set; }
 

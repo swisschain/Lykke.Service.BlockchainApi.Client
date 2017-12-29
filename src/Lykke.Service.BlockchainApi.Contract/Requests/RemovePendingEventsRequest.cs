@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -8,6 +9,6 @@ namespace Lykke.Service.BlockchainApi.Contract.Requests
     public class RemovePendingEventsRequest
     {
         [JsonProperty("operationIds")]
-        public IReadOnlyList<string> OperationIds { get; set; }
+        public IReadOnlyList<Guid> OperationIds { get; set; }
     }
 }
