@@ -8,8 +8,8 @@ using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Client.Results;
+using Lykke.Service.BlockchainApi.Client.Results.PendingEvents;
 using Lykke.Service.BlockchainApi.Contract.Requests;
-using Lykke.Service.BlockchainApi.Contract.Responses;
 using Microsoft.Extensions.PlatformAbstractions;
 using Refit;
 
@@ -17,13 +17,13 @@ namespace Lykke.Service.BlockchainApi.Client
 {
     /// <inheritdoc />
     [PublicAPI]
-    public sealed class BlockchainEventsHandlerClient : IBlockchainEventsHandlerClient
+    public sealed class BlockchainApiClient : IBlockchainApiClient
     {
         private readonly HttpClient _httpClient;
-        private readonly IBlockchainEventsHandlerApi _api;
+        private readonly IBlockchainApi _api;
         private readonly ApiRunner _runner;
 
-        public BlockchainEventsHandlerClient(ILog log, string hostUrl)
+        public BlockchainApiClient(ILog log, string hostUrl)
         {
             _httpClient = new HttpClient
             {
@@ -37,7 +37,7 @@ namespace Lykke.Service.BlockchainApi.Client
                 }
             };
 
-            _api = RestService.For<IBlockchainEventsHandlerApi>(_httpClient);
+            _api = RestService.For<IBlockchainApi>(_httpClient);
 
             _runner = new ApiRunner(log, defaultRetriesCount: 5);
         }
@@ -48,14 +48,18 @@ namespace Lykke.Service.BlockchainApi.Client
             return _runner.RunAsync(() => _api.GetIsAliveAsync());
         }
 
-        public Task<AssetsListResponse> GetAssetsAsync()
+        public async Task<BlockchainAssetsList> GetAssetsAsync()
         {
-            return _runner.RunWithRetriesAsync(() => _api.GetAssetsAsync());
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetAssetsAsync());
+
+            return new BlockchainAssetsList(apiResponse);
         }
 
-        public Task<AssetResponse> GetAssetAsync(string assetId)
+        public async Task<BlockchainAsset> GetAssetAsync(string assetId)
         {
-            return _runner.RunWithRetriesAsync(() => _api.GetAssetAsync(assetId));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetAssetAsync(assetId));
+
+            return new BlockchainAsset(apiResponse);
         }
 
         public async Task<bool> IsAddressValidAsync(string address)
@@ -63,16 +67,19 @@ namespace Lykke.Service.BlockchainApi.Client
             return (await _runner.RunWithRetriesAsync(() => _api.IsAddressValidAsync(address))).IsValid;
         }
 
-        public Task<WalletCreationResponse> CreateWalletAsync()
+        public async Task<WalletCreationResult> CreateWalletAsync()
         {
-            return _runner.RunAsync(() => _api.CreateWalletAsync());
+            var apiResponse = await _runner.RunAsync(() => _api.CreateWalletAsync());
+
+            return new WalletCreationResult(apiResponse);
         }
 
         public async Task CashoutFromWalletAsync(string address, string toAddress, string assetId, decimal amount, IReadOnlyList<string> signers)
         {
             var asset = await GetAssetAsync(assetId);
 
-            var contractAmount = Math.Round(amount * asset.Accuracy).ToString(CultureInfo.InvariantCulture);
+            var assetPow = (decimal)Math.Pow(10, asset.Accuracy);
+            var contractAmount = Math.Round(amount * assetPow).ToString(CultureInfo.InvariantCulture);
 
             await _runner.RunAsync(() => _api.CashoutFromWalletAsync(address, new CashoutFromWalletRequest
             {
@@ -83,7 +90,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }));
         }
         
-        public async Task<PendingEventsResponse<PendingCashinEvent>> GetPendingCashinEventsAsync(int maxEventsNumber)
+        public async Task<PendingEventsList<PendingCashinEvent>> GetPendingCashinEventsAsync(int maxEventsNumber)
         {
             var assetsTask = GetAssetsAsync();
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetPendingCashinEventsAsync(maxEventsNumber));
@@ -91,15 +98,13 @@ namespace Lykke.Service.BlockchainApi.Client
                 .Assets
                 .ToDictionary(a => a.AssetId, a => a);
 
-            return new PendingEventsResponse<PendingCashinEvent>
-            {
-                Events = apiResponse.Events
-                    .Select(e => new PendingCashinEvent(e, GetAssetAccuracy(assets, e.AssetId)))
-                    .ToArray()
-            };
+            return PendingEventsList.From(apiResponse
+                .Events
+                .Select(e => new PendingCashinEvent(e, GetAssetAccuracy(assets, e.AssetId)))
+                .ToArray());
         }
 
-        public async Task<PendingEventsResponse<PendingCashoutStartedEvent>> GetPendingCashoutStartedEventsAsync(int maxEventsNumber)
+        public async Task<PendingEventsList<PendingCashoutStartedEvent>> GetPendingCashoutStartedEventsAsync(int maxEventsNumber)
         {
             var assetsTask = GetAssetsAsync();
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetPendingCashoutStartedEventsAsync(maxEventsNumber));
@@ -107,15 +112,13 @@ namespace Lykke.Service.BlockchainApi.Client
                 .Assets
                 .ToDictionary(a => a.AssetId, a => a);
 
-            return new PendingEventsResponse<PendingCashoutStartedEvent>
-            {
-                Events = apiResponse.Events
-                    .Select(e => new PendingCashoutStartedEvent(e, GetAssetAccuracy(assets, e.AssetId)))
-                    .ToArray()
-            };
+            return PendingEventsList.From(apiResponse
+                .Events
+                .Select(e => new PendingCashoutStartedEvent(e, GetAssetAccuracy(assets, e.AssetId)))
+                .ToArray());
         }
 
-        public async Task<PendingEventsResponse<PendingCashoutCompletedEvent>> GetPendingCashoutCompletedEventsAsync(int maxEventsNumber)
+        public async Task<PendingEventsList<PendingCashoutCompletedEvent>> GetPendingCashoutCompletedEventsAsync(int maxEventsNumber)
         {
             var assetsTask = GetAssetsAsync();
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetPendingCashoutCompletedEventsAsync(maxEventsNumber));
@@ -123,15 +126,13 @@ namespace Lykke.Service.BlockchainApi.Client
                 .Assets
                 .ToDictionary(a => a.AssetId, a => a);
 
-            return new PendingEventsResponse<PendingCashoutCompletedEvent>
-            {
-                Events = apiResponse.Events
-                    .Select(e => new PendingCashoutCompletedEvent(e, GetAssetAccuracy(assets, e.AssetId)))
-                    .ToArray()
-            };
+            return PendingEventsList.From(apiResponse
+                .Events
+                .Select(e => new PendingCashoutCompletedEvent(e, GetAssetAccuracy(assets, e.AssetId)))
+                .ToArray());
         }
 
-        public async Task<PendingEventsResponse<PendingCashoutFailedEvent>> GetPendingCashoutFailedEventsAsync(int maxEventsNumber)
+        public async Task<PendingEventsList<PendingCashoutFailedEvent>> GetPendingCashoutFailedEventsAsync(int maxEventsNumber)
         {
             var assetsTask = GetAssetsAsync();
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetPendingCashoutFailedEventsAsync(maxEventsNumber));
@@ -139,15 +140,13 @@ namespace Lykke.Service.BlockchainApi.Client
                 .Assets
                 .ToDictionary(a => a.AssetId, a => a);
 
-            return new PendingEventsResponse<PendingCashoutFailedEvent>
-            {
-                Events = apiResponse.Events
-                    .Select(e => new PendingCashoutFailedEvent(e, GetAssetAccuracy(assets, e.AssetId)))
-                    .ToArray()
-            };
+            return PendingEventsList.From(apiResponse
+                .Events
+                .Select(e => new PendingCashoutFailedEvent(e, GetAssetAccuracy(assets, e.AssetId)))
+                .ToArray());
         }
 
-        public Task RemovePendingCashinEventsAsync(IReadOnlyList<string> operationIds)
+        public Task RemovePendingCashinEventsAsync(IReadOnlyList<Guid> operationIds)
         {
             return _runner.RunWithRetriesAsync(() => _api.RemovePendingCashinEventsAsync(new RemovePendingEventsRequest
             {
@@ -155,7 +154,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }));
         }
 
-        public Task RemovePendingCashoutStartedEventsAsync(IReadOnlyList<string> operationIds)
+        public Task RemovePendingCashoutStartedEventsAsync(IReadOnlyList<Guid> operationIds)
         {
             return _runner.RunWithRetriesAsync(() => _api.RemovePendingCashoutStartedEventsAsync(new RemovePendingEventsRequest
             {
@@ -163,7 +162,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }));
         }
 
-        public Task RemovePendingCashoutCompletedEventsAsync(IReadOnlyList<string> operationIds)
+        public Task RemovePendingCashoutCompletedEventsAsync(IReadOnlyList<Guid> operationIds)
         {
             return _runner.RunWithRetriesAsync(() => _api.RemovePendingCashoutCompletedEventsAsync(new RemovePendingEventsRequest
             {
@@ -171,7 +170,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }));
         }
 
-        public Task RemovePendingCashoutFailedEventsAsync(IReadOnlyList<string> operationIds)
+        public Task RemovePendingCashoutFailedEventsAsync(IReadOnlyList<Guid> operationIds)
         {
             return _runner.RunWithRetriesAsync(() => _api.RemovePendingCashoutFailedEventsAsync(new RemovePendingEventsRequest
             {
@@ -185,7 +184,7 @@ namespace Lykke.Service.BlockchainApi.Client
             _httpClient?.Dispose();
         }
 
-        private int GetAssetAccuracy(Dictionary<string, AssetResponse> assets, string assetId)
+        private int GetAssetAccuracy(Dictionary<string, BlockchainAsset> assets, string assetId)
         {
             if (!assets.TryGetValue(assetId, out var asset))
             {
