@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
 using Polly;
 using Refit;
@@ -11,12 +9,10 @@ namespace Lykke.Service.BlockchainApi.Client
 {
     internal class ApiRunner
     {
-        private readonly ILog _log;
         private readonly int _defaultRetriesCount;
 
-        public ApiRunner(ILog log, int defaultRetriesCount = int.MaxValue)
+        public ApiRunner(int defaultRetriesCount = int.MaxValue)
         {
-            _log = log;
             _defaultRetriesCount = defaultRetriesCount;
         }
 
@@ -46,12 +42,12 @@ namespace Lykke.Service.BlockchainApi.Client
 
         public Task RunWithRetriesAsync(Func<Task> method, int? retriesCount = null)
         {
+            // TODO: Update retries telemetry
             return Policy
                 .Handle<Exception>(FilterRetryExceptions)
                 .WaitAndRetryAsync(
                     retriesCount ?? _defaultRetriesCount,
-                    GetRetryDelay,
-                    (ex, timeSpan) => WriteRetryErrorAsync(method, timeSpan, ex))
+                    GetRetryDelay)
                 .ExecuteAsync(async () =>
                 {
                     try
@@ -74,13 +70,12 @@ namespace Lykke.Service.BlockchainApi.Client
 
         public Task<T> RunWithRetriesAsync<T>(Func<Task<T>> method, int? retriesCount = null)
         {
-
+            // TODO: Update retries telemetry
             return Policy
                 .Handle<Exception>(FilterRetryExceptions)
                 .WaitAndRetryAsync(
                     retriesCount ?? _defaultRetriesCount,
-                    GetRetryDelay,
-                    (ex, timeSpan) => WriteRetryErrorAsync(method, timeSpan, ex))
+                    GetRetryDelay)
                 .ExecuteAsync(async () =>
                 {
                     try
@@ -99,45 +94,6 @@ namespace Lykke.Service.BlockchainApi.Client
                         throw;
                     }
                 });
-        }
-
-        private Task WriteRetryErrorAsync(Delegate method, TimeSpan timeSpan, Exception ex)
-        {
-            var process = $"Blockchain events handler HTTP API request - {method.Method.Name}";
-
-            if (ex is ErrorResponseException errorResponseException)
-            {
-                return _log.WriteWarningAsync(
-                    process,
-                    GetExceptionMessage(errorResponseException),
-                    $"was failed. Will be retried in {timeSpan}");
-            }
-
-            return _log.WriteWarningAsync(
-                process,
-                "",
-                $"Blockchain events handler HTTP API call was failed. Will be retried in {timeSpan}",
-                ex);
-        }
-
-        private static string GetExceptionMessage(Exception exception)
-        {
-            var ex = exception;
-            var sb = new StringBuilder();
-
-            while (true)
-            {
-                sb.AppendLine(ex.Message);
-
-                ex = ex.InnerException;
-
-                if (ex == null)
-                {
-                    return sb.ToString();
-                }
-
-                sb.Append(" -> ");
-            }
         }
 
         private static bool FilterRetryExceptions(Exception ex)
