@@ -7,7 +7,7 @@ using Refit;
 
 namespace Lykke.Service.BlockchainApi.Client
 {
-    internal interface IBlockchainEventsHandlerApi
+    internal interface IBlockchainApi
     {
         [Get("/api/isalive")]
         Task<IsAliveResponse> GetIsAliveAsync();
