@@ -6,9 +6,17 @@ namespace Lykke.Service.BlockchainApi.Client.Results.PendingEvents
     [PublicAPI]
     public class PendingCashinEvent : BasePendingEvent
     {
-        public PendingCashinEvent(BasePendingEventContract apiResponse, int assetAccuracy) : 
+        public string Address { get; }
+
+        public PendingCashinEvent(PendingCashinEventContract apiResponse, int assetAccuracy) : 
             base(apiResponse, assetAccuracy)
         {
+            if (string.IsNullOrWhiteSpace(apiResponse.Address))
+            {
+                throw new ResultValidationException("Address is required", apiResponse.Address);
+            }
+
+            Address = apiResponse.Address;
         }
     }
 }
