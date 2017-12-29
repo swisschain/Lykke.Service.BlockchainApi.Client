@@ -6,13 +6,19 @@ namespace Lykke.Service.BlockchainApi.Client.Results.PendingEvents
     [PublicAPI]
     public class PendingCashoutStartedEvent : BasePendingEvent
     {
-        public string ToAddress { get; set; }
+        public string FromAddress { get; }
 
-        public string TransactionHash { get; set; }
+        public string ToAddress { get; }
+
+        public string TransactionHash { get; }
 
         public PendingCashoutStartedEvent(PendingCashoutStartedEventContract apiResponse, int assetAccuracy) : 
             base(apiResponse, assetAccuracy)
         {
+            if (string.IsNullOrWhiteSpace(apiResponse.FromAddress))
+            {
+                throw new ResultValidationException("Source address is required", apiResponse.FromAddress);
+            }
             if (string.IsNullOrWhiteSpace(apiResponse.ToAddress))
             {
                 throw new ResultValidationException("Destination address is required", apiResponse.ToAddress);
@@ -22,6 +28,7 @@ namespace Lykke.Service.BlockchainApi.Client.Results.PendingEvents
                 throw new ResultValidationException("Transaction hash is required", apiResponse.TransactionHash);
             }
 
+            FromAddress = apiResponse.FromAddress;
             ToAddress = apiResponse.ToAddress;
             TransactionHash = apiResponse.TransactionHash;
         }
