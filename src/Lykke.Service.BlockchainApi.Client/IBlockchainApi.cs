@@ -25,7 +25,7 @@ namespace Lykke.Service.BlockchainApi.Client
 
         #region Addresses
 
-        [Get("api/addresses/{address}/is-valid")]
+        [Get("/api/addresses/{address}/is-valid")]
         Task<AddressValidationResponse> IsAddressValidAsync(string address);
 
         #endregion
