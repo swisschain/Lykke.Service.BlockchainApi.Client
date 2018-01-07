@@ -9,7 +9,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
     /// Request body for the:
     /// - [POST] /api/transactions/broadcast
     ///     Errors:
-    ///         - 409 Conflict: transaction with specified operationId is already broadcasted.
+    ///         - 409 Conflict: transaction with specified operationId and signedTransaction is already broadcasted.
     /// </summary>
     /// <remarks>
     /// Service should broadcast the signed transaction and start to observe its execution

@@ -37,8 +37,8 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// <summary>
         /// Amount to transfer. Integer as string, aligned 
         /// to the asset accuracy. Actual value can be 
-        /// calculated as 
-        /// x = amount / (10 ^ asset.Accuracy) 
+        /// writen using <see cref="Conversions.CoinsToContract"/>
+        /// and can be read using <see cref="Conversions.CoinsFromContract"/>
         /// </summary>
         [JsonProperty("amount")]
         public string Amount { get; set; }

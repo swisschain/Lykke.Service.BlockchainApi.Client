@@ -43,8 +43,8 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// <summary>
         /// Amount. Is integer as string, aligned 
         /// to the asset accuracy. Actual value can be 
-        /// calculated as 
-        /// x = sourceAmount * (10 ^ asset.Accuracy)
+        /// writen using <see cref="Conversions.CoinsToContract"/>
+        /// and can be read using <see cref="Conversions.CoinsFromContract"/>
         /// </summary>
         [JsonProperty("amount")]
         public string Amount { get; set; }
