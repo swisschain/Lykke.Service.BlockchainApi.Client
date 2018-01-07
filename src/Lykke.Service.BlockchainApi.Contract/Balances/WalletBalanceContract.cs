@@ -18,8 +18,8 @@ namespace Lykke.Service.BlockchainApi.Contract.Balances
         /// <summary>
         /// Balance is integer as string, aligned 
         /// to the asset accuracy. Actual value can be 
-        /// calculated as 
-        /// x = sourceBalance * (10 ^ asset.Accuracy)
+        /// writen using <see cref="Conversions.CoinsToContract"/>
+        /// and can be read using <see cref="Conversions.CoinsFromContract"/>
         /// </summary>
         public string Balance { get; set; }
     }
