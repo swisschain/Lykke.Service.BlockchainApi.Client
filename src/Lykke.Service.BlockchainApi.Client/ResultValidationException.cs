@@ -1,5 +1,4 @@
 ﻿using System;
-using Common;
 using JetBrains.Annotations;
 
 namespace Lykke.Service.BlockchainApi.Client
@@ -7,18 +6,13 @@ namespace Lykke.Service.BlockchainApi.Client
     [PublicAPI]
     public class ResultValidationException : Exception
     {
-        public ResultValidationException(string message) :
-            base(message)
+        public ResultValidationException(string message, Exception innnerException = null) :
+            base(message, innnerException)
         {
         }
 
-        public ResultValidationException(string message, object actualValue) :
-            base(BuildMessage(message, actualValue))
-        {
-        }
-
-        public ResultValidationException(string message, Exception inner) :
-            base(message, inner)
+        public ResultValidationException(string message, object actualValue, Exception innerException = null) :
+            base(BuildMessage(message, actualValue), innerException)
         {
         }
 
