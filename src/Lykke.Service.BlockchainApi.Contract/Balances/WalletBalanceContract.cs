@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
 
 namespace Lykke.Service.BlockchainApi.Contract.Balances
 {
@@ -13,7 +14,14 @@ namespace Lykke.Service.BlockchainApi.Contract.Balances
         /// <summary>
         /// Wallet address
         /// </summary>
+        [JsonProperty("address")]
         public string Address { get; set; }
+
+        /// <summary>
+        /// Asset ID
+        /// </summary>
+        [JsonProperty("assetId")]
+        public string AssetId { get; set; }
 
         /// <summary>
         /// Balance is integer as string, aligned 
@@ -21,6 +29,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Balances
         /// writen using <see cref="Conversions.CoinsToContract"/>
         /// and can be read using <see cref="Conversions.CoinsFromContract"/>
         /// </summary>
+        [JsonProperty("balance")]
         public string Balance { get; set; }
     }
 }
