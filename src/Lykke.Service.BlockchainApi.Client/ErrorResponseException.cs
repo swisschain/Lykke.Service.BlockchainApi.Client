@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
+using System.Net;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
+using Refit;
 
 namespace Lykke.Service.BlockchainApi.Client
 {
@@ -14,56 +14,13 @@ namespace Lykke.Service.BlockchainApi.Client
     {
         public ErrorResponse Error { get; }
 
-        public ErrorResponseException(ErrorResponse error) :
-            base(BuildMessage(error))
+        public HttpStatusCode StatusCode { get; }
+
+        public ErrorResponseException(ErrorResponse error, ApiException inner) :
+            base(error?.GetSummaryMessage() ?? string.Empty, inner)
         {
             Error = error ?? throw new ArgumentNullException(nameof(error));
-        }
-
-        public ErrorResponseException(ErrorResponse error, Exception inner) :
-            base(BuildMessage(error), inner)
-        {
-            Error = error ?? throw new ArgumentNullException(nameof(error));
-        }
-
-        private static string BuildMessage(ErrorResponse errorResponse)
-        {
-            if (errorResponse == null)
-            {
-                return null;
-            }
-
-            var sb = new StringBuilder();
-
-            if (errorResponse.ErrorMessage != null)
-            {
-                sb.AppendLine($"Error summary: {errorResponse.ErrorMessage}");
-            }
-
-            if (errorResponse.ModelErrors != null)
-            {
-                sb.AppendLine();
-
-                foreach (var error in errorResponse.ModelErrors)
-                {
-                    if (error.Key != null && error.Value != null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(error.Key))
-                        {
-                            sb.AppendLine($"{error.Key}:");
-                        }
-
-                        foreach (var message in error.Value.Take(error.Value.Count - 1))
-                        {
-                            sb.AppendLine($" - {message}");
-                        }
-
-                        sb.Append($" - {error.Value.Last()}");
-                    }
-                }
-            }
-
-            return sb.ToString();
+            StatusCode = inner.StatusCode;
         }
     }
 }
