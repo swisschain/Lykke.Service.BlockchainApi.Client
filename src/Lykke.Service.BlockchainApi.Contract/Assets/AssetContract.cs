@@ -36,7 +36,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Assets
         /// Asset accuracy - maximum number
         /// of significant decimal digits to the right 
         /// of the decimal point in the asset amount.
-        /// Valid range: [1..28]
+        /// Valid range: [0..28]
         /// </summary>
         [JsonProperty("accuracy")]
         public int Accuracy { get; set; }
