@@ -126,6 +126,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
+        /// Transaction should be removed from this collection when its state is changed to the completed or failed
         /// <paramref name="skip"/> transactions should be skipped before return first transaction.
         /// </summary>
         /// <param name="take">Maximum transactions to return</param>
@@ -161,8 +162,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should stop observation of the specified transactions. 
         /// If one or many of the specified transactions not found in the observed transactions, 
         /// they should be ignored. Should affect transactions list returned by the
-        /// <see cref="GetInProgressTransactionsAsync"/>, <see cref="GetCompletedTransactionsAsync"/> and
-        /// <see cref="GetFailedTransactionsAsync"/>
+        /// <see cref="GetCompletedTransactionsAsync"/> and <see cref="GetFailedTransactionsAsync"/>
         /// </summary>
         [Delete("/api/transactions/observation")]
         Task StopTransactionsObservationAsync([Body] IReadOnlyList<Guid> body);
