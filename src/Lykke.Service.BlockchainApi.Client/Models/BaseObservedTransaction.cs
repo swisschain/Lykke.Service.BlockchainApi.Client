@@ -37,9 +37,14 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         public string AssetId { get; set; }
 
         /// <summary>
-        /// Amount
+        /// Amount without fee
         /// </summary>
         public decimal Amount { get; set; }
+
+        /// <summary>
+        /// Fee
+        /// </summary>
+        public decimal Fee { get; set; }
 
         protected BaseObservedTransaction(BaseObservedTransactionContract contract, int assetAccuracy)
         {
@@ -79,6 +84,15 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             catch (ConversionException ex)
             {
                 throw new ResultValidationException("Failed to parse amount", contract.Amount, ex);
+            }
+
+            try
+            {
+                Fee = Conversions.CoinsFromContract(contract.Fee, assetAccuracy);
+            }
+            catch (ConversionException ex)
+            {
+                throw new ResultValidationException("Failed to parse fee", contract.Fee, ex);
             }
         }
     }
