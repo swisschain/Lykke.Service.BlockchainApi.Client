@@ -41,12 +41,21 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         public string AssetId { get; set; }
 
         /// <summary>
-        /// Amount. Is integer as string, aligned 
+        /// Amount without fee. Is integer as string, aligned 
         /// to the asset accuracy. Actual value can be 
         /// writen using <see cref="Conversions.CoinsToContract"/>
         /// and can be read using <see cref="Conversions.CoinsFromContract"/>
         /// </summary>
         [JsonProperty("amount")]
         public string Amount { get; set; }
+
+        /// <summary>
+        /// Fee. Is integer as string, aligned 
+        /// to the asset accuracy. Actual value can be 
+        /// writen using <see cref="Conversions.CoinsToContract"/>
+        /// and can be read using <see cref="Conversions.CoinsFromContract"/>
+        /// </summary>
+        [JsonProperty("fee")]
+        public string Fee { get; set; }
     }
 }
