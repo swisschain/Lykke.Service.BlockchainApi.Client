@@ -60,15 +60,20 @@ namespace Lykke.Service.BlockchainApi.Client
         #region Assets
 
         /// <inheritdoc />
-        public async Task<IEnumerable<BlockchainAsset>> GetAssetsAsync()
+        public async Task<PaginationResult<BlockchainAsset>> GetAssetsAsync(int take, string continuation)
         {
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetAssetsAsync());
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetAssetsAsync(take, continuation));
 
             ValidateContractValueIsNotNull(apiResponse);
+            ValidateContractItemsIsNotNull(apiResponse.Items);
 
-            return apiResponse.Select(a => new BlockchainAsset(a));
+            return PaginationResult.From(
+                apiResponse.Continuation, 
+                apiResponse.Items.Select(a => new BlockchainAsset(a)).ToArray());
         }
+
         
+
         /// <inheritdoc />
         public async Task<BlockchainAsset> GetAssetAsync(string assetId)
         {
@@ -132,16 +137,19 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<WalletBalance>> GetWalletBalancesAsync(int take, int skip, Func<string, int> assetAccuracyProvider)
+        public async Task<PaginationResult<WalletBalance>> GetWalletBalancesAsync(int take, string continuation, Func<string, int> assetAccuracyProvider)
         {
-            ValidateTakeSkipRange(take, skip);
+            ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetWalletBalancesAsync(take, skip));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetWalletBalancesAsync(take, continuation));
 
             ValidateContractValueIsNotNull(apiResponse);
+            ValidateContractItemsIsNotNull(apiResponse.Items);
 
-            return apiResponse.Select(b => new WalletBalance(b, assetAccuracyProvider(b.AssetId)));
+            return PaginationResult.From(
+                apiResponse.Continuation,
+                apiResponse.Items.Select(b => new WalletBalance(b, assetAccuracyProvider(b.AssetId))).ToArray());
         }
 
         #endregion
@@ -184,18 +192,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <inheritdoc />
         public async Task<TransactionBuildingResult> RebuildTransactionAsync(
             Guid operationId, 
-            string fromAddress, 
-            string toAddress, 
-            BlockchainAsset asset, 
-            decimal amount,
-            bool includeFee, 
             decimal feeFactor)
         {
             ValidateOperationIdIsNotEmpty(operationId);
-            ValidateFromAddresIsNotEmpty(fromAddress);
-            ValidateToAddressIsNotEmpty(toAddress);
-            ValidateAssetIsNotNull(asset);
-            ValidateAmountRange(amount);
             ValidateFeeFactorRange(feeFactor);
 
             RebuildTransactionResponse apiResponse;
@@ -206,17 +205,12 @@ namespace Lykke.Service.BlockchainApi.Client
                     new RebuildTransactionRequest
                     {
                         OperationId = operationId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        AssetId = asset.AssetId,
-                        Amount = Conversions.CoinsToContract(amount, asset.Accuracy),
-                        IncludeFee = includeFee,
                         FeeFactor = feeFactor
                     }));
             }
             catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotAcceptable)
             {
-                throw new NonAcceptableAmountException($"Transaction amount {amount} is non acceptable", ex);
+                throw new NonAcceptableAmountException($"Transaction amount is non acceptable", ex);
             }
 
             return new TransactionBuildingResult(apiResponse);
@@ -245,42 +239,51 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<InProgressTransaction>> GetInProgressTransactionsAsync(int take, int skip, Func<string, int> assetAccuracyProvider)
+        public async Task<PaginationResult<InProgressTransaction>> GetInProgressTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider)
         {
-            ValidateTakeSkipRange(take, skip);
+            ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetInProgressTransactionsAsync(take, skip));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetInProgressTransactionsAsync(take, continuation));
 
             ValidateContractValueIsNotNull(apiResponse);
+            ValidateContractItemsIsNotNull(apiResponse.Items);
 
-            return apiResponse.Select(t => new InProgressTransaction(t, assetAccuracyProvider(t.AssetId)));
+            return PaginationResult.From(
+                apiResponse.Continuation,
+                apiResponse.Items.Select(t => new InProgressTransaction(t, assetAccuracyProvider(t.AssetId))).ToArray());
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<CompletedTransaction>> GetCompletedTransactionsAsync(int take, int skip, Func<string, int> assetAccuracyProvider)
+        public async Task<PaginationResult<CompletedTransaction>> GetCompletedTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider)
         {
-            ValidateTakeSkipRange(take, skip);
+            ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetCompletedTransactionsAsync(take, skip));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetCompletedTransactionsAsync(take, continuation));
 
-            ValidateContractValueIsNotNull(apiResponse);
-
-            return apiResponse.Select(t => new CompletedTransaction(t, assetAccuracyProvider(t.AssetId)));
+            ValidateContractItemsIsNotNull(apiResponse.Items);
+            ValidateContractItemsIsNotNull(apiResponse.Items);
+            
+            return PaginationResult.From(
+                apiResponse.Continuation,
+                apiResponse.Items.Select(t => new CompletedTransaction(t, assetAccuracyProvider(t.AssetId))).ToArray());
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<FailedTransaction>> GetFailedTransactionsAsync(int take, int skip, Func<string, int> assetAccuracyProvider)
+        public async Task<PaginationResult<FailedTransaction>> GetFailedTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider)
         {
-            ValidateTakeSkipRange(take, skip);
+            ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetFailedTransactionsAsync(take, skip));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetFailedTransactionsAsync(take, continuation));
 
             ValidateContractValueIsNotNull(apiResponse);
+            ValidateContractItemsIsNotNull(apiResponse.Items);
 
-            return apiResponse.Select(t => new FailedTransaction(t, assetAccuracyProvider(t.AssetId)));
+            return PaginationResult.From(
+                apiResponse.Continuation,
+                apiResponse.Items.Select(t => new FailedTransaction(t, assetAccuracyProvider(t.AssetId))).ToArray());
         }
 
         /// <inheritdoc />
@@ -334,16 +337,15 @@ namespace Lykke.Service.BlockchainApi.Client
         public async Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactions(
             string address, 
             string afterHash, 
-            int take, 
-            int skip,
+            int take,
             Func<string, int> assetAccuracyProvider)
         {
             ValidateAddressIsNotEmpty(address);
             ValidateAfterHashIsNotEmpty(afterHash);
-            ValidateTakeSkipRange(take, skip);
+            ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfOutgoingTransactions(address, afterHash, take, skip));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfOutgoingTransactions(address, afterHash, take));
 
             ValidateContractValueIsNotNull(apiResponse);
 
@@ -355,15 +357,14 @@ namespace Lykke.Service.BlockchainApi.Client
             string address,
             string afterHash,
             int take,
-            int skip, 
             Func<string, int> assetAccuracyProvider)
         {
             ValidateAddressIsNotEmpty(address);
             ValidateAfterHashIsNotEmpty(afterHash);
-            ValidateTakeSkipRange(take, skip);
+            ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfIncomingTransactions(address, afterHash, take, skip));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfIncomingTransactions(address, afterHash, take));
 
             ValidateContractValueIsNotNull(apiResponse);
 
@@ -410,15 +411,12 @@ namespace Lykke.Service.BlockchainApi.Client
             }
         }
 
-        private static void ValidateTakeSkipRange(int take, int skip)
+        private static void ValidateTakeRange(int take)
         {
             if (take <= 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(take), take, "Amount of items to take should be positive number");
-            }
-            if (skip < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(skip), skip, "Amount of items to skip should be not negative number");
+                throw new ArgumentOutOfRangeException(nameof(take), take,
+                    "Amount of items to take should be positive number");
             }
         }
 
@@ -499,6 +497,14 @@ namespace Lykke.Service.BlockchainApi.Client
             if (string.IsNullOrWhiteSpace(afterHash))
             {
                 throw new ArgumentException("'After hash' is required", nameof(afterHash));
+            }
+        }
+
+        private void ValidateContractItemsIsNotNull<TItem>(IReadOnlyList<TItem> items)
+        {
+            if (items == null)
+            {
+                throw new ResultValidationException("Items are required");
             }
         }
 

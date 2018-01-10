@@ -27,7 +27,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <summary>
         /// Should return all blockchain assets (coins, tags). If there are no assets, empty array should be returned
         /// </summary>
-        Task<IEnumerable<BlockchainAsset>> GetAssetsAsync();
+        Task<PaginationResult<BlockchainAsset>> GetAssetsAsync(int take, string continuation);
 
         /// <summary>
         /// Should return specified asset (coin, tag)
@@ -77,16 +77,18 @@ namespace Lykke.Service.BlockchainApi.Client
 
         /// <summary>
         /// Should return balances of the observed wallets with non zero balances.
-        /// Wallets balance observation is enabled by the <see cref="StartBalanceObservationAsync"/> and 
-        /// disabled by the <see cref="StopBalanceObservationAsync"/>.
+        /// Wallets balance observation is enabled by the 
+        /// <see cref="StartBalanceObservationAsync"/> and disabled by the <see cref="StopBalanceObservationAsync"/>.
         /// If there are no balances to return, empty array should be returned.
-        /// Amount of the returned wallets should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> balances should be skipped before return first balance.
+        /// Amount of the returned wallets should not exceed <paramref name="take"/>. 
+        /// Optional continuation contains context of the previous request, to let Blockchain.Api 
+        /// resume reading of the balances from the previous position.
+        /// If continuation is empty, balances should be read from the beginning.
         /// </summary>
         /// <param name="take">Maximum wallets to return</param>
-        /// <param name="skip">Amount of the wallets to skip before return first wallet</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<IEnumerable<WalletBalance>> GetWalletBalancesAsync(int take, int skip, Func<string, int> assetAccuracyProvider);
+        Task<PaginationResult<WalletBalance>> GetWalletBalancesAsync(int take, string continuation, Func<string, int> assetAccuracyProvider);
 
         #endregion
 
@@ -117,20 +119,17 @@ namespace Lykke.Service.BlockchainApi.Client
         /// if applicable for the given blockchain. This should be implemented, 
         /// if blockchain allows transaction rebuilding (substitution) with new fee. 
         /// This will be called if transaction is stuck in the “in-progress” state for too long,
-        /// to try to execute transaction with higher fee.
+        /// to try to execute transaction with higher fee. <see cref="BuildTransactionAsync"/> with 
+        /// the same <paramref name="operationId"/> should precede to the given call. 
+        /// Transaction should be rebuilt with parameters that were passed to the <see cref="BuildTransactionAsync"/>.
         /// </summary>
         /// <param name="operationId">Lykke unique operation ID</param>
-        /// <param name="fromAddress">Source address</param>
-        /// <param name="toAddress">Destination address</param>
-        /// <param name="asset">Blockchain asset to transfer</param>
-        /// <param name="amount">Amount to transfer</param>
-        /// <param name="includeFee">Flag, which indicates, that fee should be included in the specified amount</param>
         /// <param name="feeFactor">Multiplier for the transaction fee. Blockchain will multiply regular fee by this factor</param>
         /// <exception cref="NonAcceptableAmountException">
         /// Tranaction <paramref name="amount"/> is non acceptable.
         /// Transaction building should be retried with different <paramref name="amount"/>
         /// </exception>
-        Task<TransactionBuildingResult> RebuildTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee, decimal feeFactor);
+        Task<TransactionBuildingResult> RebuildTransactionAsync(Guid operationId, decimal feeFactor);
 
         /// <summary>
         /// Should broadcast the signed transaction and start to observe its execution.
@@ -151,37 +150,43 @@ namespace Lykke.Service.BlockchainApi.Client
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// Transaction should be removed from this collection when its state is changed to the completed or failed
-        /// <paramref name="skip"/> transactions should be skipped before return first transaction.
+        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
+        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
+        /// transactions should be read from the beginning.
+        /// Transaction should be removed from this collection when its state is changed to the completed or failed.
         /// </summary>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<IEnumerable<InProgressTransaction>> GetInProgressTransactionsAsync(int take, int skip, Func<string, int> assetAccuracyProvider);
+        Task<PaginationResult<InProgressTransaction>> GetInProgressTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider);
 
         /// <summary>
         /// Should return completed observed transactions. Transaction observation is started when 
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> transactions should be skipped before return first transaction.
+        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
+        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
+        /// transactions should be read from the beginning.
         /// </summary>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<IEnumerable<CompletedTransaction>> GetCompletedTransactionsAsync(int take, int skip, Func<string, int> assetAccuracyProvider);
+        Task<PaginationResult<CompletedTransaction>> GetCompletedTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider);
 
         /// <summary>
         /// Should return failed observed transactions. Transaction observation is started when 
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> transactions should be skipped before return first transaction.
+        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
+        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
+        /// transactions should be read from the beginning.
         /// </summary>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<IEnumerable<FailedTransaction>> GetFailedTransactionsAsync(int take, int skip, Func<string, int> assetAccuracyProvider);
+        Task<PaginationResult<FailedTransaction>> GetFailedTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider);
 
         /// <summary>
         /// Should stop observation of the specified transactions. 
@@ -219,14 +224,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should include transactions broadcasted not using this API.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> transactions should be skipped before the first transaction is returned.
         /// </summary>
         /// <param name="address">Address for which outgoing transactions history should be returned</param>
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactions(string address, string afterHash, int take, int skip, Func<string, int> assetAccuracyProvider);
+        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactions(string address, string afterHash, int take, Func<string, int> assetAccuracyProvider);
 
         /// <summary>
         /// Should return completed transactions that transfer fund to the <paramref name="address"/> and that 
@@ -234,14 +237,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should include transactions broadcasted not using this API.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> transactions should be skipped before the first transaction is returned.
         /// </summary>
         /// <param name="address">Address for which incoming transactions history should be returned</param>
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactions(string address, string afterHash, int take, int skip, Func<string, int> assetAccuracyProvider);
+        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactions(string address, string afterHash, int take, Func<string, int> assetAccuracyProvider);
 
 
         #endregion
