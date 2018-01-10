@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
-using Lykke.Service.BlockchainApi.Contract;
 
 namespace Lykke.Service.BlockchainApi.Client.Models
 {
@@ -30,8 +29,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// Continuation token, that
         /// can be used to continue data reading
         /// from the current position.
-        /// Should be null or empty string if no more data
-        /// to read.
+        /// Is null if no more data to read.
         /// </summary>
         public string Continuation { get; }
 
@@ -41,11 +39,11 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public IReadOnlyList<TItem> Items { get; }
 
-        public bool HasMoreItems => !string.IsNullOrEmpty(Continuation);
+        public bool HasMoreItems => Continuation != null;
 
         public PaginationResult(string continuation, IReadOnlyList<TItem> items)
         {
-            Continuation = continuation;
+            Continuation = string.IsNullOrEmpty(continuation) ? null : continuation;
             Items = items ?? throw new ResultValidationException("Items should be not empty array");
         }
     }
