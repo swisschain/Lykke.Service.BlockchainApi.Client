@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Addresses;
 using Lykke.Service.BlockchainApi.Contract.Assets;
 using Lykke.Service.BlockchainApi.Contract.Balances;
@@ -21,10 +22,16 @@ namespace Lykke.Service.BlockchainApi.Client
         #region Assets
 
         /// <summary>
-        /// Should return all blockchain assets (coins, tags). If there are no assets, empty array should be returned
+        /// Should return all blockchain assets (coins, tags). If there are no assets, 
+        /// empty array should be returned. Amount of the returned assets should not exceed <paramref name="take"/>.
+        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
+        /// resume reading of the assets from the previous position. If <paramref name="continuation"/> is empty, assets 
+        /// should be read from the beginning.
         /// </summary>
+        /// <param name="take">Maximum wallets to return</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         [Get("/api/assets")]
-        Task<IReadOnlyList<AssetContract>> GetAssetsAsync();
+        Task<PaginationResponse<AssetContract>> GetAssetsAsync(int take, string continuation);
 
         /// <summary>
         /// Should return specified asset (coin, tag)
@@ -76,16 +83,18 @@ namespace Lykke.Service.BlockchainApi.Client
 
         /// <summary>
         /// Should return balances of the observed wallets with non zero balances.
-        /// Wallets balance observation is enabled by the <see cref="StartBalanceObservationAsync"/> and 
-        /// disabled by the <see cref="StopBalanceObservationAsync"/>.
+        /// Wallets balance observation is enabled by the 
+        /// <see cref="StartBalanceObservationAsync"/> and disabled by the <see cref="StopBalanceObservationAsync"/>.
         /// If there are no balances to return, empty array should be returned.
-        /// Amount of the returned wallets should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> balances should be skipped before return first balance.
+        /// Amount of the returned wallets should not exceed <paramref name="take"/>. 
+        /// Optional continuation contains context of the previous request, to let Blockchain.Api 
+        /// resume reading of the balances from the previous position.
+        /// If continuation is empty, balances should be read from the beginning.
         /// </summary>
         /// <param name="take">Maximum wallets to return</param>
-        /// <param name="skip">Amount of the wallets to skip before return first wallet</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         [Get("/api/balances")]
-        Task<IReadOnlyList<WalletBalanceContract>> GetWalletBalancesAsync(int take, int skip);
+        Task<PaginationResponse<WalletBalanceContract>> GetWalletBalancesAsync(int take, string continuation);
 
         #endregion
 
@@ -110,7 +119,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// if applicable for the given blockchain. This should be implemented, 
         /// if blockchain allows transaction rebuilding (substitution) with new fee. 
         /// This will be called if transaction is stuck in the “in-progress” state for too long,
-        /// to try to execute transaction with higher fee.
+        /// to try to execute transaction with higher fee. [POST] /api/transactions with the same 
+        /// operationId should precede to the given call. Transaction should be rebuilt with 
+        /// parameters that were passed to the [POST] /api/transactions.
         /// 
         /// Errors:
         /// - 406 Not Acceptable: transaction can’t be built due to non acceptable amount (too small for example).
@@ -132,37 +143,43 @@ namespace Lykke.Service.BlockchainApi.Client
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// Transaction should be removed from this collection when its state is changed to the completed or failed
-        /// <paramref name="skip"/> transactions should be skipped before return first transaction.
+        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
+        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
+        /// transactions should be read from the beginning.
+        /// Transaction should be removed from this collection when its state is changed to the completed or failed.
         /// </summary>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         [Get("/api/transactions/completed")]
-        Task<IReadOnlyList<InProgressTransactionContract>> GetInProgressTransactionsAsync(int take, int skip);
+        Task<PaginationResponse<InProgressTransactionContract>> GetInProgressTransactionsAsync(int take, string continuation);
 
         /// <summary>
         /// Should return completed observed transactions. Transaction observation is started when 
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> transactions should be skipped before return first transaction.
+        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
+        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
+        /// transactions should be read from the beginning.
         /// </summary>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         [Get("/api/transactions/in-progress")]
-        Task<IReadOnlyList<CompletedTransactionContract>> GetCompletedTransactionsAsync(int take, int skip);
+        Task<PaginationResponse<CompletedTransactionContract>> GetCompletedTransactionsAsync(int take, string continuation);
 
         /// <summary>
         /// Should return failed observed transactions. Transaction observation is started when 
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> transactions should be skipped before return first transaction.
+        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
+        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
+        /// transactions should be read from the beginning.
         /// </summary>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         [Get("/api/transactions/failed")]
-        Task<IReadOnlyList<FailedTransactionContract>> GetFailedTransactionsAsync(int take, int skip);
+        Task<PaginationResponse<FailedTransactionContract>> GetFailedTransactionsAsync(int take, string continuation);
 
         /// <summary>
         /// Should stop observation of the specified transactions. 
@@ -201,14 +218,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should include transactions broadcasted not using this API.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> transactions should be skipped before the first transaction is returned.
         /// </summary>
         /// <param name="address">Address for which outgoing transactions history should be returned</param>
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
         [Get("/api/transactions/history/from/{address}")]
-        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfOutgoingTransactions(string address, string afterHash, int take, int skip);
+        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfOutgoingTransactions(string address, string afterHash, int take);
 
         /// <summary>
         /// Should return completed transactions that transfer fund to the <paramref name="address"/> and that 
@@ -216,14 +231,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should include transactions broadcasted not using this API.
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// <paramref name="skip"/> transactions should be skipped before the first transaction is returned.
         /// </summary>
         /// <param name="address">Address for which incoming transactions history should be returned</param>
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
-        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
         [Get("/api/transactions/history/to/{address}")]
-        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfIncomingTransactions(string address, string afterHash, int take, int skip);
+        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfIncomingTransactions(string address, string afterHash, int take);
 
         #endregion
     }

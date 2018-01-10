@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
@@ -18,8 +19,14 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
     /// to try to execute transaction with higher fee.
     /// </remarks>
     [PublicAPI]
-    public class RebuildTransactionRequest : BaseTransactionBuildingRequest
+    public class RebuildTransactionRequest
     {
+        /// <summary>
+        /// Lykke unique operation ID
+        /// </summary>
+        [JsonProperty("operationId")]
+        public Guid OperationId { get; set; }
+
         /// <summary>
         /// Multiplier for the transaction fee. 
         /// Blockchain should multiply regular fee
