@@ -7,11 +7,18 @@ namespace Lykke.Service.BlockchainApi.Client.Models
     /// Observed transaction, being in the progress.
     /// </summary>
     [PublicAPI]
-    public class InProgressTransaction : BaseHealthyObservedTransaction
+    public class InProgressTransaction : BaseObservedTransaction
     {
-        public InProgressTransaction(InProgressTransactionContract contract, int assetAccuracy) : 
+        /// <summary>
+        /// Transaction hash as base64 string.
+        /// Can be empty
+        /// </summary>
+        public string Hash { get; }
+
+        public InProgressTransaction(InProgressTransactionContract contract, int assetAccuracy) :
             base(contract, assetAccuracy)
         {
+            Hash = contract.Hash;
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Client.Models;
-using Lykke.Service.BlockchainApi.Client.Results;
 
 namespace Lykke.Service.BlockchainApi.Client
 {
@@ -105,6 +104,10 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="asset">Blockchain asset to transfer</param>
         /// <param name="amount">Amount to transfer</param>
         /// <param name="includeFee">Flag, which indicates, that fee should be included in the specified amount</param>
+        /// <exception cref="NonAcceptableAmountException">
+        /// Tranaction <paramref name="amount"/> is non acceptable.
+        /// Transaction building should be retried with different <paramref name="amount"/>
+        /// </exception>
         Task<TransactionBuildingResult> BuildTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee);
 
         /// <summary>
@@ -123,6 +126,10 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="amount">Amount to transfer</param>
         /// <param name="includeFee">Flag, which indicates, that fee should be included in the specified amount</param>
         /// <param name="feeFactor">Multiplier for the transaction fee. Blockchain will multiply regular fee by this factor</param>
+        /// <exception cref="NonAcceptableAmountException">
+        /// Tranaction <paramref name="amount"/> is non acceptable.
+        /// Transaction building should be retried with different <paramref name="amount"/>
+        /// </exception>
         Task<TransactionBuildingResult> RebuildTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee, decimal feeFactor);
 
         /// <summary>
@@ -183,6 +190,59 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <see cref="GetCompletedTransactionsAsync"/> and <see cref="GetFailedTransactionsAsync"/>
         /// </summary>
         Task StopTransactionsObservationAsync(IReadOnlyList<Guid> operationIds);
+
+        /// <summary>
+        /// Should start observation of the transactions that transfer fund from the address. 
+        /// Should affect result of the [GET] /api/transactions/history/from/{address}.
+        /// </summary>
+        /// <param name="address">Address for which outgoing transactions history should be observed</param>
+        /// <returns>
+        /// true - if transactions observation is started. 
+        /// false - if transactions observation was already started fot the given <paramref name="address"/>
+        /// </returns>
+        Task<bool> StartHistoryObservationOfOutgoingTransactionsAsync(string address);
+
+        /// <summary>
+        /// Should start observation of the transactions that transfer fund to the address. 
+        /// Should affect result of the <see cref="GetHistoryOfIncomingTransactions"/>.
+        /// </summary>
+        /// <param name="address">Address for which incoming transactions history should be observed</param>
+        /// <returns>
+        /// true - if transactions observation is started. 
+        /// false - if transactions observation was already started fot the given <paramref name="address"/>
+        /// </returns>
+        Task<bool> StartHistoryObservationOfIncomingTransactions(string address);
+
+        /// <summary>
+        /// Should return completed transactions that transfer fund from the <paramref name="address"/> and that 
+        /// were broadcasted after the transaction with the hash equal to the <paramref name="afterHash"/>.
+        /// Should include transactions broadcasted not using this API.
+        /// If there are no transactions to return, empty array should be returned.
+        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
+        /// <paramref name="skip"/> transactions should be skipped before the first transaction is returned.
+        /// </summary>
+        /// <param name="address">Address for which outgoing transactions history should be returned</param>
+        /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
+        /// <param name="take">Maximum transactions to return</param>
+        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
+        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactions(string address, string afterHash, int take, int skip, Func<string, int> assetAccuracyProvider);
+
+        /// <summary>
+        /// Should return completed transactions that transfer fund to the <paramref name="address"/> and that 
+        /// were broadcasted after the transaction with the hash equal to the <paramref name="afterHash"/>.
+        /// Should include transactions broadcasted not using this API.
+        /// If there are no transactions to return, empty array should be returned.
+        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
+        /// <paramref name="skip"/> transactions should be skipped before the first transaction is returned.
+        /// </summary>
+        /// <param name="address">Address for which incoming transactions history should be returned</param>
+        /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
+        /// <param name="take">Maximum transactions to return</param>
+        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
+        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactions(string address, string afterHash, int take, int skip, Func<string, int> assetAccuracyProvider);
+
 
         #endregion
     }

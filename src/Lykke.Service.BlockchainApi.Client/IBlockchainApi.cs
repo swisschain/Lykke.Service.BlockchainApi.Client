@@ -96,6 +96,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should build not signed transaction. If transaction with the specified 
         /// <see cref="BroadcastTransactionRequest.OperationId"/> already was built, 
         /// it should be ignored and regular response should be returned.
+        /// 
+        /// Errors:
+        /// - 406 Not Acceptable: transaction can’t be built due to non acceptable amount (too small for example).
         /// </summary>
         [Post("/api/transactions")]
         Task<BuildTransactionResponse> BuildTransactionAsync([Body] BuildTransactionRequest body);
@@ -108,6 +111,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// if blockchain allows transaction rebuilding (substitution) with new fee. 
         /// This will be called if transaction is stuck in the “in-progress” state for too long,
         /// to try to execute transaction with higher fee.
+        /// 
+        /// Errors:
+        /// - 406 Not Acceptable: transaction can’t be built due to non acceptable amount (too small for example).
         /// </summary>
         [Put("/api/transactions")]
         Task<RebuildTransactionResponse> RebuildTransactionAsync([Body] RebuildTransactionRequest body);
@@ -166,7 +172,59 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         [Delete("/api/transactions/observation")]
         Task StopTransactionsObservationAsync([Body] IReadOnlyList<Guid> body);
-        
+
+        /// <summary>
+        /// Should start observation of the transactions that transfer fund from the address. 
+        /// Should affect result of the [GET] /api/transactions/history/from/{address}.
+        /// 
+        /// Errors:
+        /// - 409 Conflict: transactions from the address are already observed.
+        /// </summary>
+        /// <param name="address">Address for which outgoing transactions history should be observed</param>
+        [Post("/api/transactions/history/from/{address}/observation")]
+        Task StartHistoryObservationOfOutgoingTransactionsAsync(string address);
+
+        /// <summary>
+        /// Should start observation of the transactions that transfer fund to the address. 
+        /// Should affect result of the [GET] /api/transactions/history/to/{address}.
+        /// 
+        /// Errors:
+        /// - 409 Conflict: transactions to the address are already observed.
+        /// </summary>
+        /// <param name="address">Address for which incoming transactions history should be observed</param>
+        [Post("/api/transactions/history/from/{address}/observation")]
+        Task StartHistoryObservationOfIncomingTransactions(string address);
+
+        /// <summary>
+        /// Should return completed transactions that transfer fund from the <paramref name="address"/> and that 
+        /// were broadcasted after the transaction with the hash equal to the <paramref name="afterHash"/>.
+        /// Should include transactions broadcasted not using this API.
+        /// If there are no transactions to return, empty array should be returned.
+        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
+        /// <paramref name="skip"/> transactions should be skipped before the first transaction is returned.
+        /// </summary>
+        /// <param name="address">Address for which outgoing transactions history should be returned</param>
+        /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
+        /// <param name="take">Maximum transactions to return</param>
+        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        [Get("/api/transactions/history/from/{address}")]
+        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfOutgoingTransactions(string address, string afterHash, int take, int skip);
+
+        /// <summary>
+        /// Should return completed transactions that transfer fund to the <paramref name="address"/> and that 
+        /// were broadcasted after the transaction with the hash equal to the <paramref name="afterHash"/>.
+        /// Should include transactions broadcasted not using this API.
+        /// If there are no transactions to return, empty array should be returned.
+        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
+        /// <paramref name="skip"/> transactions should be skipped before the first transaction is returned.
+        /// </summary>
+        /// <param name="address">Address for which incoming transactions history should be returned</param>
+        /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
+        /// <param name="take">Maximum transactions to return</param>
+        /// <param name="skip">Amount of the transactions to skip before return first transaction</param>
+        [Get("/api/transactions/history/to/{address}")]
+        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfIncomingTransactions(string address, string afterHash, int take, int skip);
+
         #endregion
     }
 }

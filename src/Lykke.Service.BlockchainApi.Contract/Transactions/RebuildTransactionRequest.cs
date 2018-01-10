@@ -7,6 +7,8 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
     /// Transaction rebuilding parameters
     /// Request body for the:
     /// - [PUT] /api/transactions
+    ///     Errors:
+    ///         - 406 Not Acceptable: transaction can’t be built due to non acceptable amount (too small for example).
     /// </summary>
     /// <remarks>
     /// Service sould rebuild not signed transaction with the specified fee factor, 
