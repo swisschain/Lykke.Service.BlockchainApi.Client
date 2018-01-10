@@ -12,7 +12,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// <summary>
         /// Error description
         /// </summary>
-        public string Error { get; set; }
+        public string Error { get; }
 
         public FailedTransaction(FailedTransactionContract contract, int assetAccuracy) :
             base(contract, assetAccuracy)

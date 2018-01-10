@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Client.Models;
-using Lykke.Service.BlockchainApi.Client.Results;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Microsoft.Extensions.PlatformAbstractions;
@@ -159,15 +158,25 @@ namespace Lykke.Service.BlockchainApi.Client
             ValidateAssetIsNotNull(asset);
             ValidateAmountRange(amount);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildTransactionAsync(new BuildTransactionRequest
+            BuildTransactionResponse apiResponse;
+
+            try
             {
-                OperationId = operationId,
-                FromAddress = fromAddress,
-                ToAddress = toAddress,
-                AssetId = asset.AssetId,
-                Amount = Conversions.CoinsToContract(amount, asset.Accuracy),
-                IncludeFee = includeFee
-            }));
+                apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildTransactionAsync(
+                    new BuildTransactionRequest
+                    {
+                        OperationId = operationId,
+                        FromAddress = fromAddress,
+                        ToAddress = toAddress,
+                        AssetId = asset.AssetId,
+                        Amount = Conversions.CoinsToContract(amount, asset.Accuracy),
+                        IncludeFee = includeFee
+                    }));
+            }
+            catch (ErrorResponseException ex) when(ex.StatusCode == HttpStatusCode.NotAcceptable)
+            {
+                throw new NonAcceptableAmountException($"Transaction amount {amount} is non acceptable", ex);
+            }
 
             return new TransactionBuildingResult(apiResponse);
         }
@@ -189,16 +198,26 @@ namespace Lykke.Service.BlockchainApi.Client
             ValidateAmountRange(amount);
             ValidateFeeFactorRange(feeFactor);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.RebuildTransactionAsync(new RebuildTransactionRequest
+            RebuildTransactionResponse apiResponse;
+
+            try
             {
-                OperationId = operationId,
-                FromAddress = fromAddress,
-                ToAddress = toAddress,
-                AssetId = asset.AssetId,
-                Amount = Conversions.CoinsToContract(amount, asset.Accuracy),
-                IncludeFee = includeFee,
-                FeeFactor = feeFactor
-            }));
+                apiResponse = await _runner.RunWithRetriesAsync(() => _api.RebuildTransactionAsync(
+                    new RebuildTransactionRequest
+                    {
+                        OperationId = operationId,
+                        FromAddress = fromAddress,
+                        ToAddress = toAddress,
+                        AssetId = asset.AssetId,
+                        Amount = Conversions.CoinsToContract(amount, asset.Accuracy),
+                        IncludeFee = includeFee,
+                        FeeFactor = feeFactor
+                    }));
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotAcceptable)
+            {
+                throw new NonAcceptableAmountException($"Transaction amount {amount} is non acceptable", ex);
+            }
 
             return new TransactionBuildingResult(apiResponse);
         }
@@ -275,6 +294,80 @@ namespace Lykke.Service.BlockchainApi.Client
             }
 
             return _runner.RunWithRetriesAsync(() => _api.StopTransactionsObservationAsync(operationIds));
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> StartHistoryObservationOfOutgoingTransactionsAsync(string address)
+        {
+            ValidateAddressIsNotEmpty(address);
+
+            try
+            {
+                await _runner.RunWithRetriesAsync(() => _api.StartHistoryObservationOfOutgoingTransactionsAsync(address));
+            }
+            catch (ErrorResponseException ex) when(ex.StatusCode == HttpStatusCode.Conflict)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> StartHistoryObservationOfIncomingTransactions(string address)
+        {
+            ValidateAddressIsNotEmpty(address);
+
+            try
+            {
+                await _runner.RunWithRetriesAsync(() => _api.StartHistoryObservationOfIncomingTransactions(address));
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactions(
+            string address, 
+            string afterHash, 
+            int take, 
+            int skip,
+            Func<string, int> assetAccuracyProvider)
+        {
+            ValidateAddressIsNotEmpty(address);
+            ValidateAfterHashIsNotEmpty(afterHash);
+            ValidateTakeSkipRange(take, skip);
+            ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
+
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfOutgoingTransactions(address, afterHash, take, skip));
+
+            ValidateContractValueIsNotNull(apiResponse);
+
+            return apiResponse.Select(t => new HistoricalTransaction(t, assetAccuracyProvider(t.AssetId)));
+        }       
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactions(
+            string address,
+            string afterHash,
+            int take,
+            int skip, 
+            Func<string, int> assetAccuracyProvider)
+        {
+            ValidateAddressIsNotEmpty(address);
+            ValidateAfterHashIsNotEmpty(afterHash);
+            ValidateTakeSkipRange(take, skip);
+            ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
+
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfIncomingTransactions(address, afterHash, take, skip));
+
+            ValidateContractValueIsNotNull(apiResponse);
+
+            return apiResponse.Select(t => new HistoricalTransaction(t, assetAccuracyProvider(t.AssetId)));
         }
 
         #endregion
@@ -398,6 +491,14 @@ namespace Lykke.Service.BlockchainApi.Client
             if (operationIds == null)
             {
                 throw new ArgumentNullException(nameof(operationIds));
+            }
+        }
+
+        private void ValidateAfterHashIsNotEmpty(string afterHash)
+        {
+            if (string.IsNullOrWhiteSpace(afterHash))
+            {
+                throw new ArgumentException("'After hash' is required", nameof(afterHash));
             }
         }
 

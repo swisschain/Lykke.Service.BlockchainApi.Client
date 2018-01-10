@@ -98,12 +98,20 @@ namespace Lykke.Service.BlockchainApi.Client
 
         private static bool FilterRetryExceptions(Exception ex)
         {
-            if (ex.InnerException is ApiException apiException)
+            if (ex.InnerException is ApiException innerApiException)
+            {
+                return innerApiException.StatusCode == HttpStatusCode.InternalServerError ||
+                        innerApiException.StatusCode == HttpStatusCode.BadGateway ||
+                        innerApiException.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                        innerApiException.StatusCode == HttpStatusCode.GatewayTimeout;
+            }
+
+            if (ex is ApiException apiException)
             {
                 return apiException.StatusCode == HttpStatusCode.InternalServerError ||
-                        apiException.StatusCode == HttpStatusCode.BadGateway ||
-                        apiException.StatusCode == HttpStatusCode.ServiceUnavailable ||
-                        apiException.StatusCode == HttpStatusCode.GatewayTimeout;
+                       apiException.StatusCode == HttpStatusCode.BadGateway ||
+                       apiException.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                       apiException.StatusCode == HttpStatusCode.GatewayTimeout;
             }
 
             return true;

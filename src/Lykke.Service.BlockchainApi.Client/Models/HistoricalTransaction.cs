@@ -1,20 +1,19 @@
 ﻿using JetBrains.Annotations;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
+using Newtonsoft.Json;
 
 namespace Lykke.Service.BlockchainApi.Client.Models
 {
-    /// <summary>
-    /// Observed transaction, that is completed.
-    /// </summary>
     [PublicAPI]
-    public class CompletedTransaction : BaseObservedTransaction
+    public class HistoricalTransaction : BaseTransaction
     {
         /// <summary>
         /// Transaction hash as base64 string.
         /// </summary>
+        [JsonProperty("hash")]
         public string Hash { get; }
 
-        public CompletedTransaction(CompletedTransactionContract contract, int assetAccuracy) :
+        public HistoricalTransaction(HistoricalTransactionContract contract, int assetAccuracy) : 
             base(contract, assetAccuracy)
         {
             if (string.IsNullOrWhiteSpace(contract.Hash))

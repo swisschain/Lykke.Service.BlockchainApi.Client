@@ -14,7 +14,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// specific format, which should be passed to the
         /// Blockchain.SignService for signing
         /// </summary>
-        public string TransactionContext { get; set; }
+        public string TransactionContext { get; }
 
         public TransactionBuildingResult(BaseTransactionBuildingResponse contract)
         {

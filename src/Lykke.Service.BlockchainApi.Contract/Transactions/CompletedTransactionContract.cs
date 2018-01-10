@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
 
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
@@ -8,7 +9,12 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
     /// - [GET] /api/transactions/completed?take=integer&amp;skip=integer response
     /// </summary>
     [PublicAPI]
-    public class CompletedTransactionContract : BaseHealthyObservedTransactionContract
+    public class CompletedTransactionContract : BaseObservedTransactionContract
     {
+        /// <summary>
+        /// Transaction hash as base64 string.
+        /// </summary>
+        [JsonProperty("hash")]
+        public string Hash { get; set; }
     }
 }

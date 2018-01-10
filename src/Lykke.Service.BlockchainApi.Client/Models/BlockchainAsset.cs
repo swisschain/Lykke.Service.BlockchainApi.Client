@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Lykke.Service.BlockchainApi.Contract.Assets;
 
-namespace Lykke.Service.BlockchainApi.Client.Results
+namespace Lykke.Service.BlockchainApi.Client.Models
 {
     /// <summary>
     /// Blockchain asset
