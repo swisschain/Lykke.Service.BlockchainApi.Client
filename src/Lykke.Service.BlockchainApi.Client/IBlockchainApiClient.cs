@@ -25,8 +25,48 @@ namespace Lykke.Service.BlockchainApi.Client
         #region Assets
 
         /// <summary>
-        /// Should return all blockchain assets (coins, tags). If there are no assets, empty array should be returned
+        /// Enumerates all blockchain assets (coins, tags). To the <paramref name="enumerationCallback"/>
         /// </summary>
+        /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
+        /// <param name="enumerationCallback">Enumeration callback, which will be called for every read asset</param>
+        Task EnumerateAllAssetsAsync(int batchSize, Action<BlockchainAsset> enumerationCallback);
+
+        /// <summary>
+        /// Enumerates all blockchain assets (coins, tags). To the <paramref name="enumerationCallback"/>
+        /// </summary>
+        /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
+        /// <param name="enumerationCallback">Enumeration callback, which will be called for every read asset</param>
+        Task EnumerateAllAssetsAsync(int batchSize, Func<BlockchainAsset, Task> enumerationCallback);
+
+        /// <summary>
+        /// Enumerates all blockchain assets (coins, tags). To the <paramref name="enumerationCallback"/>
+        /// </summary>
+        /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
+        /// <param name="enumerationCallback">Enumeration callback, which will be called for every read asset</param>
+        Task EnumerateAllAssetBatchesAsync(int batchSize, Action<IReadOnlyList<BlockchainAsset>> enumerationCallback);
+
+        /// <summary>
+        /// Enumerates all blockchain assets (coins, tags). To the <paramref name="enumerationCallback"/>
+        /// </summary>
+        /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
+        /// <param name="enumerationCallback">Enumeration callback, which will be called for every read asset</param>
+        Task EnumerateAllAssetBatchesAsync(int batchSize, Func<IReadOnlyList<BlockchainAsset>, Task> enumerationCallback);
+
+        /// <summary>
+        /// Returns all blockchain assets (coins, tags). If there are no assets, empty collection will be returned
+        /// </summary>
+        /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
+        Task<IReadOnlyDictionary<string, BlockchainAsset>> GetAllAssetsAsync(int batchSize);
+
+        /// <summary>
+        /// Should return batch of the blockchain assets (coins, tags). 
+        /// Amount of the returned assets should not exceed <paramref name="take"/>. 
+        /// Optional <paramref name="continuation"/> contains context of the previous request,
+        /// to let Blockchain.Api resume reading of the assets from the previous position. 
+        /// If <paramref name="continuation"/> is empty, assets should be read from the beginning.
+        /// </summary>
+        /// <param name="take">Maximum wallets to return</param>
+        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
         Task<PaginationResult<BlockchainAsset>> GetAssetsAsync(int take, string continuation);
 
         /// <summary>
@@ -126,8 +166,8 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="feeFactor">Multiplier for the transaction fee. Blockchain will multiply regular fee by this factor</param>
         /// <exception cref="NonAcceptableAmountException">
-        /// Tranaction <paramref name="amount"/> is non acceptable.
-        /// Transaction building should be retried with different <paramref name="amount"/>
+        /// Tranaction amount is non acceptable.
+        /// Transaction building should be retried with different amount
         /// </exception>
         Task<TransactionBuildingResult> RebuildTransactionAsync(Guid operationId, decimal feeFactor);
 

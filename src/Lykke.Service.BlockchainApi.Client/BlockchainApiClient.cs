@@ -54,6 +54,77 @@ namespace Lykke.Service.BlockchainApi.Client
             return _runner.RunAsync(() => _api.GetIsAliveAsync());
         }
 
+        public Task EnumerateAllAssetsAsync(int batchSize, Action<BlockchainAsset> enumerationCallback)
+        {
+            return EnumerateAllAssetBatchesAsync(batchSize, batch =>
+            {
+                foreach (var asset in batch)
+                {
+                    enumerationCallback(asset);
+                }
+            });
+        }
+
+        public Task EnumerateAllAssetsAsync(int batchSize, Func<BlockchainAsset, Task> enumerationCallback)
+        {
+            return EnumerateAllAssetBatchesAsync(batchSize, async batch =>
+            {
+                foreach (var asset in batch)
+                {
+                    await enumerationCallback(asset);
+                }
+            });
+        }
+
+        public async Task EnumerateAllAssetBatchesAsync(int batchSize, Action<IReadOnlyList<BlockchainAsset>> enumerationCallback)
+        {
+            string continuation = null;
+            
+            do
+            {
+                var response = await GetAssetsAsync(batchSize, continuation);
+
+                enumerationCallback(response.Items);
+
+                continuation = response.Continuation;
+
+                if (!response.HasMoreItems)
+                {
+                    return;
+                }
+
+            } while (true);
+        }
+
+        public async Task EnumerateAllAssetBatchesAsync(int batchSize, Func<IReadOnlyList<BlockchainAsset>, Task> enumerationCallback)
+        {
+            string continuation = null;
+
+            do
+            {
+                var response = await GetAssetsAsync(batchSize, continuation);
+
+                await enumerationCallback(response.Items);
+
+                continuation = response.Continuation;
+
+                if (!response.HasMoreItems)
+                {
+                    return;
+                }
+
+            } while (true);
+        }
+
+        public async Task<IReadOnlyDictionary<string, BlockchainAsset>> GetAllAssetsAsync(int batchSize)
+        {
+            var result = new Dictionary<string, BlockchainAsset>();
+
+            await EnumerateAllAssetsAsync(batchSize, asset => result[asset.AssetId] = asset);
+
+            return result;
+        }
+
         #endregion
 
 
