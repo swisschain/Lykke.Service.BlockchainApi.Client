@@ -22,7 +22,7 @@ namespace Lykke.Service.BlockchainApi.Client
         #region Assets
 
         /// <summary>
-        /// Should return all blockchain assets (coins, tags). If there are no assets, 
+        /// Should return batch blockchain assets (coins, tags). If there are no assets, 
         /// empty array should be returned. Amount of the returned assets should not exceed <paramref name="take"/>.
         /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
         /// resume reading of the assets from the previous position. If <paramref name="continuation"/> is empty, assets 
