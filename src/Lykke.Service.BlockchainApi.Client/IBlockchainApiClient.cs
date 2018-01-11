@@ -29,45 +29,34 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
         /// <param name="enumerationCallback">Enumeration callback, which will be called for every read asset</param>
-        Task EnumerateAllAssetsAsync(int batchSize, Action<BlockchainAsset> enumerationCallback);
+        Task<EnumerationStatistics> EnumerateAllAssetsAsync(int batchSize, Action<BlockchainAsset> enumerationCallback);
 
         /// <summary>
         /// Enumerates all blockchain assets (coins, tags). To the <paramref name="enumerationCallback"/>
         /// </summary>
         /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
         /// <param name="enumerationCallback">Enumeration callback, which will be called for every read asset</param>
-        Task EnumerateAllAssetsAsync(int batchSize, Func<BlockchainAsset, Task> enumerationCallback);
+        Task<EnumerationStatistics> EnumerateAllAssetsAsync(int batchSize, Func<BlockchainAsset, Task> enumerationCallback);
 
         /// <summary>
         /// Enumerates all blockchain assets (coins, tags). To the <paramref name="enumerationCallback"/>
         /// </summary>
         /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
         /// <param name="enumerationCallback">Enumeration callback, which will be called for every read asset</param>
-        Task EnumerateAllAssetBatchesAsync(int batchSize, Action<IReadOnlyList<BlockchainAsset>> enumerationCallback);
+        Task<EnumerationStatistics> EnumerateAllAssetBatchesAsync(int batchSize, Action<IReadOnlyList<BlockchainAsset>> enumerationCallback);
 
         /// <summary>
         /// Enumerates all blockchain assets (coins, tags). To the <paramref name="enumerationCallback"/>
         /// </summary>
         /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
         /// <param name="enumerationCallback">Enumeration callback, which will be called for every read asset</param>
-        Task EnumerateAllAssetBatchesAsync(int batchSize, Func<IReadOnlyList<BlockchainAsset>, Task> enumerationCallback);
+        Task<EnumerationStatistics> EnumerateAllAssetBatchesAsync(int batchSize, Func<IReadOnlyList<BlockchainAsset>, Task> enumerationCallback);
 
         /// <summary>
         /// Returns all blockchain assets (coins, tags). If there are no assets, empty collection will be returned
         /// </summary>
         /// <param name="batchSize">Batch size that single request to the Blockchain.Api can return</param>
         Task<IReadOnlyDictionary<string, BlockchainAsset>> GetAllAssetsAsync(int batchSize);
-
-        /// <summary>
-        /// Should return batch of the blockchain assets (coins, tags). 
-        /// Amount of the returned assets should not exceed <paramref name="take"/>. 
-        /// Optional <paramref name="continuation"/> contains context of the previous request,
-        /// to let Blockchain.Api resume reading of the assets from the previous position. 
-        /// If <paramref name="continuation"/> is empty, assets should be read from the beginning.
-        /// </summary>
-        /// <param name="take">Maximum wallets to return</param>
-        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
-        Task<PaginationResult<BlockchainAsset>> GetAssetsAsync(int take, string continuation);
 
         /// <summary>
         /// Should return specified asset (coin, tag)
@@ -96,7 +85,7 @@ namespace Lykke.Service.BlockchainApi.Client
 
         /// <summary>
         /// Should remember the wallet address to observe the wallet balance and return it in the 
-        /// <see cref="GetWalletBalancesAsync"/>, if the balance is non zero.
+        /// <see cref="EnumerateWalletBalanceBatchesAsync"/>, if the balance is non zero.
         /// 
         /// Errors:
         /// - 409 Conflict: specified address is already observed.
@@ -119,16 +108,11 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should return balances of the observed wallets with non zero balances.
         /// Wallets balance observation is enabled by the 
         /// <see cref="StartBalanceObservationAsync"/> and disabled by the <see cref="StopBalanceObservationAsync"/>.
-        /// If there are no balances to return, empty array should be returned.
-        /// Amount of the returned wallets should not exceed <paramref name="take"/>. 
-        /// Optional continuation contains context of the previous request, to let Blockchain.Api 
-        /// resume reading of the balances from the previous position.
-        /// If continuation is empty, balances should be read from the beginning.
         /// </summary>
-        /// <param name="take">Maximum wallets to return</param>
-        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
+        /// <param name="batchSize">Maximum batch size</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<PaginationResult<WalletBalance>> GetWalletBalancesAsync(int take, string continuation, Func<string, int> assetAccuracyProvider);
+        /// <param name="enumerationCallback">Batch enumeration callback</param>
+        Task<EnumerationStatistics> EnumerateWalletBalanceBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<WalletBalance>, Task<bool>> enumerationCallback);
 
         #endregion
 
@@ -188,51 +172,36 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <summary>
         /// Should return observed transactions being in progress. Transaction observation is started when 
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
-        /// If there are no transactions to return, empty array should be returned.
-        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
-        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
-        /// transactions should be read from the beginning.
         /// Transaction should be removed from this collection when its state is changed to the completed or failed.
         /// </summary>
-        /// <param name="take">Maximum transactions to return</param>
-        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
+        /// <param name="batchSize">Maximum batch size</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<PaginationResult<InProgressTransaction>> GetInProgressTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider);
+        /// <param name="enumerationCallback">Batch enumeration callback</param>
+        Task<EnumerationStatistics> EnumerateInProgressTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<InProgressTransaction>, Task<bool>> enumerationCallback);
 
         /// <summary>
         /// Should return completed observed transactions. Transaction observation is started when 
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
-        /// If there are no transactions to return, empty array should be returned.
-        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
-        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
-        /// transactions should be read from the beginning.
         /// </summary>
-        /// <param name="take">Maximum transactions to return</param>
-        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
+        /// <param name="batchSize">Maximum batch size</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<PaginationResult<CompletedTransaction>> GetCompletedTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider);
+        /// <param name="enumerationCallback">Batch enumeration callback</param>
+        Task<EnumerationStatistics> EnumerateCompletedTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<CompletedTransaction>, Task<bool>> enumerationCallback);
 
         /// <summary>
         /// Should return failed observed transactions. Transaction observation is started when 
         /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
-        /// If there are no transactions to return, empty array should be returned.
-        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
-        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
-        /// transactions should be read from the beginning.
         /// </summary>
-        /// <param name="take">Maximum transactions to return</param>
-        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
+        /// <param name="batchSize">Maximum batch size</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<PaginationResult<FailedTransaction>> GetFailedTransactionsAsync(int take, string continuation, Func<string, int> assetAccuracyProvider);
+        /// <param name="enumerationCallback">Batch enumeration callback</param>
+        Task<EnumerationStatistics> EnumerateFailedTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<FailedTransaction>, Task<bool>> enumerationCallback);
 
         /// <summary>
         /// Should stop observation of the specified transactions. 
         /// If one or many of the specified transactions not found in the observed transactions, 
         /// they should be ignored. Should affect transactions list returned by the
-        /// <see cref="GetCompletedTransactionsAsync"/> and <see cref="GetFailedTransactionsAsync"/>
+        /// <see cref="EnumerateCompletedTransactionBatchesAsync"/> and <see cref="EnumerateFailedTransactionBatchesAsync"/>
         /// </summary>
         Task StopTransactionsObservationAsync(IReadOnlyList<Guid> operationIds);
 
