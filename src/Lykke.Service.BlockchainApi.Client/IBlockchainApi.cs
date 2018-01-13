@@ -130,7 +130,7 @@ namespace Lykke.Service.BlockchainApi.Client
         Task<RebuildTransactionResponse> RebuildTransactionAsync([Body] RebuildTransactionRequest body);
 
         /// <summary>
-        /// Should broadcast the signed transaction and start to observe its execution.
+        /// Should broadcast the signed transaction.
         /// 
         /// Errors:
         /// - 409 Conflict: transaction with specified operationId and signedTransaction is already broadcasted.
@@ -139,56 +139,20 @@ namespace Lykke.Service.BlockchainApi.Client
         Task BroadcastTransactionAsync([Body] BroadcastTransactionRequest body);
 
         /// <summary>
-        /// Should return observed transactions being in progress. Transaction observation is started when 
-        /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
-        /// If there are no transactions to return, empty array should be returned.
-        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
-        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
-        /// transactions should be read from the beginning.
-        /// Transaction should be removed from this collection when its state is changed to the completed or failed.
+        /// Should return broadcasted  transaction by the operationId. All transactions, 
+        /// that were broadcasted by the  <see cref="BroadcastTransactionAsync"/> should be available here.
+        /// Errors:
+        /// - 204 No content - specified transaction not found
         /// </summary>
-        /// <param name="take">Maximum transactions to return</param>
-        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
-        [Get("/api/transactions/completed")]
-        Task<PaginationResponse<InProgressTransactionContract>> GetInProgressTransactionsAsync(int take, string continuation);
+        [Get("/api/transactions/broadcast/{operationId}")]
+        Task<BroadcastedTransactionResponse> GetBroadcastedTransactionAsync(Guid operationId);
 
         /// <summary>
-        /// Should return completed observed transactions. Transaction observation is started when 
-        /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
-        /// If there are no transactions to return, empty array should be returned.
-        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
-        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
-        /// transactions should be read from the beginning.
+        /// Should remove specified transaction from the broadcasted transactions. Should affect 
+        /// transactions returned by the <see cref="GetBroadcastedTransactionAsync"/>
         /// </summary>
-        /// <param name="take">Maximum transactions to return</param>
-        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
-        [Get("/api/transactions/in-progress")]
-        Task<PaginationResponse<CompletedTransactionContract>> GetCompletedTransactionsAsync(int take, string continuation);
-
-        /// <summary>
-        /// Should return failed observed transactions. Transaction observation is started when 
-        /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
-        /// If there are no transactions to return, empty array should be returned.
-        /// Amount of the returned transactions should not exceed <paramref name="take"/>.
-        /// Optional <paramref name="continuation"/> contains context of the previous request, to let Blockchain.Api
-        /// resume reading of the transactions from the previous position. If <paramref name="continuation"/> is empty, 
-        /// transactions should be read from the beginning.
-        /// </summary>
-        /// <param name="take">Maximum transactions to return</param>
-        /// <param name="continuation">Continuation token returned by the previous request, or null</param>
-        [Get("/api/transactions/failed")]
-        Task<PaginationResponse<FailedTransactionContract>> GetFailedTransactionsAsync(int take, string continuation);
-
-        /// <summary>
-        /// Should stop observation of the specified transactions. 
-        /// If one or many of the specified transactions not found in the observed transactions, 
-        /// they should be ignored. Should affect transactions list returned by the
-        /// <see cref="GetCompletedTransactionsAsync"/> and <see cref="GetFailedTransactionsAsync"/>
-        /// </summary>
-        [Delete("/api/transactions/observation")]
-        Task StopTransactionsObservationAsync([Body] IReadOnlyList<Guid> body);
+        [Delete("/api/transactions/broadcast/{operationId}")]
+        Task ForgetBroadcastedTransactionAsync(Guid operationId);
 
         /// <summary>
         /// Should start observation of the transactions that transfer fund from the address. 

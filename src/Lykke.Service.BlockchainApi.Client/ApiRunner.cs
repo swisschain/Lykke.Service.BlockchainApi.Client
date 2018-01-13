@@ -24,7 +24,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }
             catch (ApiException ex)
             {
-                throw new ErrorResponseException(ex.GetContentAs<ErrorResponse>(), ex);
+                throw new ErrorResponseException(GetErrorResponse(ex), ex);
             }
         }
 
@@ -36,7 +36,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }
             catch (ApiException ex)
             {
-                throw new ErrorResponseException(ex.GetContentAs<ErrorResponse>(), ex);
+                throw new ErrorResponseException(GetErrorResponse(ex), ex);
             }
         }
 
@@ -56,14 +56,7 @@ namespace Lykke.Service.BlockchainApi.Client
                     }
                     catch (ApiException ex)
                     {
-                        var errorResponse = ex.GetContentAs<ErrorResponse>();
-
-                        if (errorResponse != null)
-                        {
-                            throw new ErrorResponseException(errorResponse, ex);
-                        }
-
-                        throw;
+                        throw new ErrorResponseException(GetErrorResponse(ex), ex);
                     }
                 });
         }
@@ -84,16 +77,25 @@ namespace Lykke.Service.BlockchainApi.Client
                     }
                     catch (ApiException ex)
                     {
-                        var errorResponse = ex.GetContentAs<ErrorResponse>();
-
-                        if (errorResponse != null)
-                        {
-                            throw new ErrorResponseException(errorResponse, ex);
-                        }
-
-                        throw;
+                        throw new ErrorResponseException(GetErrorResponse(ex), ex);
                     }
                 });
+        }
+
+        private static ErrorResponse GetErrorResponse(ApiException ex)
+        {
+            ErrorResponse errorResponse;
+
+            try
+            {
+                errorResponse = ex.GetContentAs<ErrorResponse>();
+            }
+            catch (Exception)
+            {
+                errorResponse = null;
+            }
+
+            return errorResponse ?? ErrorResponse.Create("Blockchain API is not specify the error response");
         }
 
         private static bool FilterRetryExceptions(Exception ex)
