@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
@@ -170,38 +171,28 @@ namespace Lykke.Service.BlockchainApi.Client
         Task<bool> BroadcastTransactionAsync(Guid operationId, string signedTransaction);
 
         /// <summary>
-        /// Should return observed transactions being in progress. Transaction observation is started when 
-        /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
-        /// Transaction should be removed from this collection when its state is changed to the completed or failed.
+        /// Should return observed transaction be the operationId. Transaction observation is started when t
+        /// he transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>
         /// </summary>
-        /// <param name="batchSize">Maximum batch size</param>
-        /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        /// <param name="enumerationCallback">Batch enumeration callback</param>
-        Task<EnumerationStatistics> EnumerateInProgressTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<InProgressTransaction>, Task<bool>> enumerationCallback);
+        /// <param name="operationId">Operation ID</param>
+        /// <param name="asset">Transaction asset for amount calculation</param>
+        /// <returns>Observed transaction or null</returns>
+        Task<ObservedTransaction> TryGetObservedTransactionAsync(Guid operationId, BlockchainAsset asset);
 
         /// <summary>
-        /// Should return completed observed transactions. Transaction observation is started when 
-        /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
+        /// Should return observed transaction be the operationId. Transaction observation is started when t
+        /// he transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>
         /// </summary>
-        /// <param name="batchSize">Maximum batch size</param>
-        /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        /// <param name="enumerationCallback">Batch enumeration callback</param>
-        Task<EnumerationStatistics> EnumerateCompletedTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<CompletedTransaction>, Task<bool>> enumerationCallback);
-
-        /// <summary>
-        /// Should return failed observed transactions. Transaction observation is started when 
-        /// transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>.
-        /// </summary>
-        /// <param name="batchSize">Maximum batch size</param>
-        /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        /// <param name="enumerationCallback">Batch enumeration callback</param>
-        Task<EnumerationStatistics> EnumerateFailedTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<FailedTransaction>, Task<bool>> enumerationCallback);
+        /// <param name="operationId">Operation ID</param>
+        /// <param name="asset">Transaction asset for amount calculation</param>
+        /// <exception cref="ErrorResponseException">Status code: <see cref="HttpStatusCode.NoContent"/> - transaction is not found</exception>
+        Task<ObservedTransaction> GetObservedTransactionAsync(Guid operationId, BlockchainAsset asset);
 
         /// <summary>
         /// Should stop observation of the specified transactions. 
         /// If one or many of the specified transactions not found in the observed transactions, 
         /// they should be ignored. Should affect transactions list returned by the
-        /// <see cref="EnumerateCompletedTransactionBatchesAsync"/> and <see cref="EnumerateFailedTransactionBatchesAsync"/>
+        /// <see cref="GetObservedTransactionAsync"/> and <see cref="TryGetObservedTransactionAsync"/>
         /// </summary>
         Task StopTransactionsObservationAsync(IReadOnlyList<Guid> operationIds);
 

@@ -178,7 +178,7 @@ namespace Lykke.Service.BlockchainApi.Client
             {
                 await _runner.RunWithRetriesAsync(() => _api.StartBalanceObservationAsync(address));
             }
-            catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
             {
                 return false;
             }
@@ -195,7 +195,7 @@ namespace Lykke.Service.BlockchainApi.Client
             {
                 await _runner.RunWithRetriesAsync(() => _api.StopBalanceObservationAsync(address));
             }
-            catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
             {
                 return false;
             }
@@ -305,7 +305,7 @@ namespace Lykke.Service.BlockchainApi.Client
                     SignedTransaction = signedTransaction
                 }));
             }
-            catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
             {
                 return false;
             }
@@ -314,75 +314,26 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<EnumerationStatistics> EnumerateInProgressTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<InProgressTransaction>, Task<bool>> enumerationCallback)
+        public async Task<ObservedTransaction> TryGetObservedTransactionAsync(Guid operationId, BlockchainAsset asset)
         {
-            var statisticsBuilder = new EnumerationStatisticsBuilder();
-            string continuation = null;
-
-            do
+            try
             {
-                var response = await GetInProgressTransactionsAsync(batchSize, continuation, assetAccuracyProvider);
-
-                statisticsBuilder.IncludeBatch(response.Items);
-
-                await enumerationCallback(response.Items);
-
-                continuation = response.Continuation;
-
-                if (!response.HasMoreItems)
-                {
-                    return statisticsBuilder.Build();
-                }
-
-            } while (true);
+                return await GetObservedTransactionAsync(operationId, asset);
+            }
+            catch (ErrorResponseException ex) when(ex.StatusCode == HttpStatusCode.NoContent)
+            {
+                return null;
+            }
         }
 
-        /// <inheritdoc />
-        public async Task<EnumerationStatistics> EnumerateCompletedTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<CompletedTransaction>, Task<bool>> enumerationCallback)
+        public async Task<ObservedTransaction> GetObservedTransactionAsync(Guid operationId, BlockchainAsset asset)
         {
-            var statisticsBuilder = new EnumerationStatisticsBuilder();
-            string continuation = null;
+            ValidateOperationIdIsNotEmpty(operationId);
+            ValidateAssetIsNotNull(asset);
 
-            do
-            {
-                var response = await GetCompletedTransactionsAsync(batchSize, continuation, assetAccuracyProvider);
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetObservedTransactionAsync(operationId));
 
-                statisticsBuilder.IncludeBatch(response.Items);
-
-                await enumerationCallback(response.Items);
-
-                continuation = response.Continuation;
-
-                if (!response.HasMoreItems)
-                {
-                    return statisticsBuilder.Build();
-                }
-
-            } while (true);
-        }
-
-        /// <inheritdoc />
-        public async Task<EnumerationStatistics> EnumerateFailedTransactionBatchesAsync(int batchSize, Func<string, int> assetAccuracyProvider, Func<IReadOnlyList<FailedTransaction>, Task<bool>> enumerationCallback)
-        {
-            var statisticsBuilder = new EnumerationStatisticsBuilder();
-            string continuation = null;
-
-            do
-            {
-                var response = await GetFailedTransactionsAsync(batchSize, continuation, assetAccuracyProvider);
-
-                statisticsBuilder.IncludeBatch(response.Items);
-
-                await enumerationCallback(response.Items);
-
-                continuation = response.Continuation;
-
-                if (!response.HasMoreItems)
-                {
-                    return statisticsBuilder.Build();
-                }
-
-            } while (true);
+            return new ObservedTransaction(apiResponse, asset.Accuracy);
         }
 
         /// <inheritdoc />
@@ -511,51 +462,6 @@ namespace Lykke.Service.BlockchainApi.Client
             return PaginationResult.From(
                 apiResponse.Continuation,
                 apiResponse.Items.Select(b => new WalletBalance(b, assetAccuracyProvider(b.AssetId))).ToArray());
-        }
-
-        private async Task<PaginationResult<InProgressTransaction>> GetInProgressTransactionsAsync(int batchSize, string continuation, Func<string, int> assetAccuracyProvider)
-        {
-            ValidateTakeRange(batchSize);
-            ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
-
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetInProgressTransactionsAsync(batchSize, continuation));
-
-            ValidateContractValueIsNotNull(apiResponse);
-            ValidateContractItemsIsNotNull(apiResponse.Items);
-
-            return PaginationResult.From(
-                apiResponse.Continuation,
-                apiResponse.Items.Select(t => new InProgressTransaction(t, assetAccuracyProvider(t.AssetId))).ToArray());
-        }
-
-        private async Task<PaginationResult<CompletedTransaction>> GetCompletedTransactionsAsync(int batchSize, string continuation, Func<string, int> assetAccuracyProvider)
-        {
-            ValidateTakeRange(batchSize);
-            ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
-
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetCompletedTransactionsAsync(batchSize, continuation));
-
-            ValidateContractItemsIsNotNull(apiResponse.Items);
-            ValidateContractItemsIsNotNull(apiResponse.Items);
-
-            return PaginationResult.From(
-                apiResponse.Continuation,
-                apiResponse.Items.Select(t => new CompletedTransaction(t, assetAccuracyProvider(t.AssetId))).ToArray());
-        }
-
-        private async Task<PaginationResult<FailedTransaction>> GetFailedTransactionsAsync(int batchSize, string continuation, Func<string, int> assetAccuracyProvider)
-        {
-            ValidateTakeRange(batchSize);
-            ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
-
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetFailedTransactionsAsync(batchSize, continuation));
-
-            ValidateContractValueIsNotNull(apiResponse);
-            ValidateContractItemsIsNotNull(apiResponse.Items);
-
-            return PaginationResult.From(
-                apiResponse.Continuation,
-                apiResponse.Items.Select(t => new FailedTransaction(t, assetAccuracyProvider(t.AssetId))).ToArray());
         }
 
         #endregion
