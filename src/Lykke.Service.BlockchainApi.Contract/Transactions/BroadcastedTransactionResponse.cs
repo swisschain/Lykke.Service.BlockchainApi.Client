@@ -5,14 +5,14 @@ using Newtonsoft.Json;
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
     /// <summary>
-    /// Base observed transaction contract
+    /// Broadcasted transaction contract
     /// Response for the:
-    /// - [GET] /api/transactions/{operationId}
+    /// - [GET] /api/transactions/broadcast/{operationId}
     ///     Errors:
     ///         - 204 No Content: specified transaction not found.
     /// </summary>
     [PublicAPI]
-    public class ObservedTransactionResponse
+    public class BroadcastedTransactionResponse
     {
         /// <summary>
         /// Lykke unique operation ID
@@ -24,7 +24,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// State of the transaction
         /// </summary>
         [JsonProperty("state")]
-        public ObservedTransactionState State { get; set; }
+        public BroadcastedTransactionState State { get; set; }
 
         /// <summary>
         /// Transaction moment as ISO 8601 in UTC
@@ -53,7 +53,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// <summary>
         /// Transaction hash as base64 string.
         /// Can be empty.
-        /// Should be non empty if the <see cref="State"/> is <see cref="ObservedTransactionState.InProgress"/>
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.InProgress"/>
         /// </summary>
         [JsonProperty("hash")]
         public string Hash { get; set; }
@@ -61,7 +61,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// <summary>
         /// Error description.
         /// Can be empty.
-        /// Should be non empty if the <see cref="State"/> is <see cref="ObservedTransactionState.Failed"/>
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Failed"/>
         /// </summary>
         [JsonProperty("error")]
         public string Error { get; set; }

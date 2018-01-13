@@ -3,9 +3,9 @@
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
     /// <summary>
-    /// State of the observed transaction
+    /// State of the broadcasted transaction
     /// </summary>
-    public enum ObservedTransactionState
+    public enum BroadcastedTransactionState
     {
         /// <summary>
         /// Transaction is being in-progress

@@ -130,7 +130,7 @@ namespace Lykke.Service.BlockchainApi.Client
         Task<RebuildTransactionResponse> RebuildTransactionAsync([Body] RebuildTransactionRequest body);
 
         /// <summary>
-        /// Should broadcast the signed transaction and start to observe its execution.
+        /// Should broadcast the signed transaction.
         /// 
         /// Errors:
         /// - 409 Conflict: transaction with specified operationId and signedTransaction is already broadcasted.
@@ -139,23 +139,20 @@ namespace Lykke.Service.BlockchainApi.Client
         Task BroadcastTransactionAsync([Body] BroadcastTransactionRequest body);
 
         /// <summary>
-        /// Should return observed transaction be the operationId. Transaction observation is started when t
-        /// he transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>
-        /// 
+        /// Should return broadcasted  transaction by the operationId. All transactions, 
+        /// that were broadcasted by the  <see cref="BroadcastTransactionAsync"/> should be available here.
         /// Errors:
         /// - 204 No content - specified transaction not found
         /// </summary>
-        [Get("/api/transactions/observed/{operationId}")]
-        Task<ObservedTransactionResponse> GetObservedTransactionAsync(Guid operationId);
+        [Get("/api/transactions/broadcast/{operationId}")]
+        Task<BroadcastedTransactionResponse> GetBroadcastedTransactionAsync(Guid operationId);
 
         /// <summary>
-        /// Should stop observation of the specified transactions. 
-        /// If one or many of the specified transactions not found in the observed transactions, 
-        /// they should be ignored. Should affect transactions list returned by the
-        /// <see cref="GetObservedTransactionAsync"/>
+        /// Should remove specified transaction from the broadcasted transactions. Should affect 
+        /// transactions returned by the <see cref="GetBroadcastedTransactionAsync"/>
         /// </summary>
-        [Delete("/api/transactions/observation")]
-        Task StopTransactionsObservationAsync([Body] IReadOnlyList<Guid> body);
+        [Delete("/api/transactions/broadcast/{operationId}")]
+        Task ForgetBroadcastedTransactionAsync(Guid operationId);
 
         /// <summary>
         /// Should start observation of the transactions that transfer fund from the address. 

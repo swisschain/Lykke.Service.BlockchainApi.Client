@@ -314,11 +314,11 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<ObservedTransaction> TryGetObservedTransactionAsync(Guid operationId, BlockchainAsset asset)
+        public async Task<BroadcastedTransaction> TryGetBroadcastedTransactionAsync(Guid operationId, BlockchainAsset asset)
         {
             try
             {
-                return await GetObservedTransactionAsync(operationId, asset);
+                return await GetBroadcastedTransactionAsync(operationId, asset);
             }
             catch (ErrorResponseException ex) when(ex.StatusCode == HttpStatusCode.NoContent)
             {
@@ -326,27 +326,22 @@ namespace Lykke.Service.BlockchainApi.Client
             }
         }
 
-        public async Task<ObservedTransaction> GetObservedTransactionAsync(Guid operationId, BlockchainAsset asset)
+        public async Task<BroadcastedTransaction> GetBroadcastedTransactionAsync(Guid operationId, BlockchainAsset asset)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateAssetIsNotNull(asset);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetObservedTransactionAsync(operationId));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedTransactionAsync(operationId));
 
-            return new ObservedTransaction(apiResponse, asset.Accuracy);
+            return new BroadcastedTransaction(apiResponse, asset.Accuracy);
         }
 
         /// <inheritdoc />
-        public Task StopTransactionsObservationAsync(IReadOnlyList<Guid> operationIds)
+        public Task ForgetBroadcastedTransactionsAsync(Guid operationId)
         {
-            ValidateOperationIdsAreNotEmpty(operationIds);
+            ValidateOperationIdIsNotEmpty(operationId);
 
-            if (!operationIds.Any())
-            {
-                return Task.CompletedTask;
-            }
-
-            return _runner.RunWithRetriesAsync(() => _api.StopTransactionsObservationAsync(operationIds));
+            return _runner.RunWithRetriesAsync(() => _api.ForgetBroadcastedTransactionAsync(operationId));
         }
 
         /// <inheritdoc />

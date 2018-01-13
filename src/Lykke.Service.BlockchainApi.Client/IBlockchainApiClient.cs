@@ -171,30 +171,29 @@ namespace Lykke.Service.BlockchainApi.Client
         Task<bool> BroadcastTransactionAsync(Guid operationId, string signedTransaction);
 
         /// <summary>
-        /// Should return observed transaction be the operationId. Transaction observation is started when t
-        /// he transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>
+        /// Should return broadcasted  transaction by the operationId. All transactions, that were broadcasted 
+        /// by the <see cref="BroadcastTransactionAsync"/> should be available here.
         /// </summary>
         /// <param name="operationId">Operation ID</param>
         /// <param name="asset">Transaction asset for amount calculation</param>
-        /// <returns>Observed transaction or null</returns>
-        Task<ObservedTransaction> TryGetObservedTransactionAsync(Guid operationId, BlockchainAsset asset);
+        /// <returns>Broadcasted transaction or null</returns>
+        Task<BroadcastedTransaction> TryGetBroadcastedTransactionAsync(Guid operationId, BlockchainAsset asset);
 
         /// <summary>
-        /// Should return observed transaction be the operationId. Transaction observation is started when t
-        /// he transaction is broadcasted by <see cref="BroadcastTransactionAsync"/>
+        /// Should return broadcasted transaction be the operationId. All transactions, that were broadcasted 
+        /// by the <see cref="BroadcastTransactionAsync"/> should be available here
         /// </summary>
         /// <param name="operationId">Operation ID</param>
         /// <param name="asset">Transaction asset for amount calculation</param>
         /// <exception cref="ErrorResponseException">Status code: <see cref="HttpStatusCode.NoContent"/> - transaction is not found</exception>
-        Task<ObservedTransaction> GetObservedTransactionAsync(Guid operationId, BlockchainAsset asset);
+        Task<BroadcastedTransaction> GetBroadcastedTransactionAsync(Guid operationId, BlockchainAsset asset);
 
-        /// <summary>
-        /// Should stop observation of the specified transactions. 
-        /// If one or many of the specified transactions not found in the observed transactions, 
-        /// they should be ignored. Should affect transactions list returned by the
-        /// <see cref="GetObservedTransactionAsync"/> and <see cref="TryGetObservedTransactionAsync"/>
+        /// <summary> 
+        /// Should remove specified transaction from the broadcasted transactions.
+        /// Should affect transactions returned by the
+        /// <see cref="GetBroadcastedTransactionAsync"/> and <see cref="TryGetBroadcastedTransactionAsync"/>
         /// </summary>
-        Task StopTransactionsObservationAsync(IReadOnlyList<Guid> operationIds);
+        Task ForgetBroadcastedTransactionsAsync(Guid operationId);
 
         /// <summary>
         /// Should start observation of the transactions that transfer fund from the address. 

@@ -6,10 +6,10 @@ using Lykke.Service.BlockchainApi.Contract.Transactions;
 namespace Lykke.Service.BlockchainApi.Client.Models
 {
     /// <summary>
-    /// Observed transaction
+    /// Broadcasted transaction
     /// </summary>
     [PublicAPI]
-    public class ObservedTransaction 
+    public class BroadcastedTransaction 
     {
         /// <summary>
         /// Lykke unique operation ID
@@ -19,7 +19,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// <summary>
         /// State
         /// </summary>
-        public ObservedTransactionState State { get; }
+        public BroadcastedTransactionState State { get; }
 
         /// <summary>
         /// Transaction moment in UTC
@@ -46,7 +46,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public string Error { get; }
 
-        public ObservedTransaction(ObservedTransactionResponse contract, int assetAccuracy)
+        public BroadcastedTransaction(BroadcastedTransactionResponse contract, int assetAccuracy)
         {
             if (contract == null)
             {
@@ -56,7 +56,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Operation ID is required", contract.OperationId);
             }
-            if (Enum.IsDefined(typeof(ObservedTransactionState), contract.State))
+            if (Enum.IsDefined(typeof(BroadcastedTransactionState), contract.State))
             {
                 throw new ResultValidationException("Unknown transaction state", contract.State);
             }
@@ -68,7 +68,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Timestamp kind should be UTC", contract.Timestamp.Kind);
             }
-            if (contract.State == ObservedTransactionState.Completed && string.IsNullOrWhiteSpace(contract.Hash))
+            if (contract.State == BroadcastedTransactionState.Completed && string.IsNullOrWhiteSpace(contract.Hash))
             {
                 throw new ResultValidationException("Hash is required for the completed transaction", contract.Hash);
             }
@@ -106,7 +106,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             Timestamp = contract.Timestamp;
             Hash = contract.Hash;
 
-            if(State == ObservedTransactionState.Failed)
+            if(State == BroadcastedTransactionState.Failed)
             {
                 Error = string.IsNullOrWhiteSpace(contract.Error)
                     ? "Blockchain API doesn't specify an error message"
