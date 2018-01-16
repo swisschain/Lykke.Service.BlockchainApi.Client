@@ -37,6 +37,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// to the asset accuracy. Actual value can be 
         /// writen using <see cref="Conversions.CoinsToContract"/>
         /// and can be read using <see cref="Conversions.CoinsFromContract"/>
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
         [JsonProperty("amount")]
         public string Amount { get; set; }
@@ -46,6 +47,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// to the asset accuracy. Actual value can be 
         /// writen using <see cref="Conversions.CoinsToContract"/>
         /// and can be read using <see cref="Conversions.CoinsFromContract"/>
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
         [JsonProperty("fee")]
         public string Fee { get; set; }
@@ -53,7 +55,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// <summary>
         /// Transaction hash as base64 string.
         /// Can be empty.
-        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.InProgress"/>
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
         [JsonProperty("hash")]
         public string Hash { get; set; }
