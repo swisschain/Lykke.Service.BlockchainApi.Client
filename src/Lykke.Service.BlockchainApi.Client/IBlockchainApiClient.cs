@@ -68,6 +68,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="assetId">Asset ID</param>
         Task<BlockchainAsset> GetAssetAsync(string assetId);
 
+        /// <summary>
+        /// Should return specified asset (coin, tag) or null if asset is not found
+        /// </summary>
+        /// <param name="assetId">Asset ID</param>
+        Task<BlockchainAsset> TryGetAssetAsync(string assetId);
+
         #endregion
 
 

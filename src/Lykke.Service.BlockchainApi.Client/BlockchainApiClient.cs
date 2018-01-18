@@ -144,9 +144,26 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <inheritdoc />
         public async Task<BlockchainAsset> GetAssetAsync(string assetId)
         {
+            var asset = await TryGetAssetAsync(assetId);
+
+            if (asset == null)
+            {
+                throw new ResultValidationException("Asset not found");
+            }
+
+            return asset;
+        }
+
+        public async Task<BlockchainAsset> TryGetAssetAsync(string assetId)
+        {
             ValidateAssetIdIsNotEmpty(assetId);
 
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetAssetAsync(assetId));
+
+            if (apiResponse == null)
+            {
+                return null;
+            }
 
             return new BlockchainAsset(apiResponse);
         }

@@ -29,7 +29,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         {
             if (contract == null)
             {
-                throw new ResultValidationException("Contract value is required");
+                throw new ResultValidationException("Wallet not found");
             }
             if (string.IsNullOrWhiteSpace(contract.Address))
             {
