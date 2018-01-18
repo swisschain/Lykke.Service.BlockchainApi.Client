@@ -31,7 +31,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         {
             if (contract == null)
             {
-                throw new ResultValidationException("Contract value is required");
+                throw new ResultValidationException("Asset not found");
             }
             if (string.IsNullOrWhiteSpace(contract.AssetId))
             {

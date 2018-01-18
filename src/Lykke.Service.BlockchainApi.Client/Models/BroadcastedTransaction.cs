@@ -28,21 +28,25 @@ namespace Lykke.Service.BlockchainApi.Client.Models
 
         /// <summary>
         /// Amount without fee
+        /// Should be positive number if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
         public decimal Amount { get; }
-        
+
         /// <summary>
         /// Fee
+        /// Should be positive number if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
         public decimal Fee { get; }
 
         /// <summary>
         /// Transaction hash as base64 string.
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
         public string Hash { get; }
 
         /// <summary>
         /// Error description
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Failed"/>
         /// </summary>
         public string Error { get; }
 
@@ -50,7 +54,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         {
             if (contract == null)
             {
-                throw new ResultValidationException("Contract value is required");
+                throw new ResultValidationException("Transaction not found");
             }
             if (contract.OperationId == Guid.Empty)
             {
@@ -73,32 +77,38 @@ namespace Lykke.Service.BlockchainApi.Client.Models
                 throw new ResultValidationException("Hash is required for the completed transaction", contract.Hash);
             }
 
-            try
+            if (contract.Amount != null)
             {
-                Amount = Conversions.CoinsFromContract(contract.Amount, assetAccuracy);
-
-                if (Amount <= 0)
+                try
                 {
-                    throw new ResultValidationException("Amount should be positive number", contract.Amount);
+                    Amount = Conversions.CoinsFromContract(contract.Amount, assetAccuracy);
+
+                    if (Amount <= 0)
+                    {
+                        throw new ResultValidationException("Amount should be positive number", contract.Amount);
+                    }
+                }
+                catch (ConversionException ex)
+                {
+                    throw new ResultValidationException("Failed to parse amount", contract.Amount, ex);
                 }
             }
-            catch (ConversionException ex)
-            {
-                throw new ResultValidationException("Failed to parse amount", contract.Amount, ex);
-            }
 
-            try
+            if (contract.Fee != null)
             {
-                Fee = Conversions.CoinsFromContract(contract.Fee, assetAccuracy);
-
-                if (Fee < 0)
+                try
                 {
-                    throw new ResultValidationException("Fee can't be negative number", contract.Fee);
+                    Fee = Conversions.CoinsFromContract(contract.Fee, assetAccuracy);
+
+                    if (Fee < 0)
+                    {
+                        throw new ResultValidationException("Fee can't be negative number", contract.Fee);
+                    }
                 }
-            }
-            catch (ConversionException ex)
-            {
-                throw new ResultValidationException("Failed to parse fee", contract.Fee, ex);
+                catch (ConversionException ex)
+                {
+                    throw new ResultValidationException("Failed to parse fee", contract.Fee, ex);
+                }
             }
 
             OperationId = contract.OperationId;
