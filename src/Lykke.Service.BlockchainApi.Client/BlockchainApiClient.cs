@@ -379,13 +379,13 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<bool> StartHistoryObservationOfIncomingTransactions(string address)
+        public async Task<bool> StartHistoryObservationOfIncomingTransactionsAsync(string address)
         {
             ValidateAddressIsNotEmpty(address);
 
             try
             {
-                await _runner.RunWithRetriesAsync(() => _api.StartHistoryObservationOfIncomingTransactions(address));
+                await _runner.RunWithRetriesAsync(() => _api.StartHistoryObservationOfIncomingTransactionsAsync(address));
             }
             catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
             {
@@ -396,7 +396,7 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactions(
+        public async Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactionsAsync(
             string address, 
             string afterHash, 
             int take,
@@ -407,7 +407,7 @@ namespace Lykke.Service.BlockchainApi.Client
             ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfOutgoingTransactions(address, afterHash, take));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfOutgoingTransactionsAsync(address, afterHash, take));
 
             ValidateContractValueIsNotNull(apiResponse);
 
@@ -415,7 +415,7 @@ namespace Lykke.Service.BlockchainApi.Client
         }       
 
         /// <inheritdoc />
-        public async Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactions(
+        public async Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactionsAsync(
             string address,
             string afterHash,
             int take,
@@ -426,7 +426,7 @@ namespace Lykke.Service.BlockchainApi.Client
             ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfIncomingTransactions(address, afterHash, take));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetHistoryOfIncomingTransactionsAsync(address, afterHash, take));
 
             ValidateContractValueIsNotNull(apiResponse);
 
