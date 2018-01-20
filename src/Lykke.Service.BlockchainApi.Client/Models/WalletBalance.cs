@@ -56,8 +56,6 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Failed to parse balance", contract.Balance, ex);
             }
-
-            
         }
     }
 }

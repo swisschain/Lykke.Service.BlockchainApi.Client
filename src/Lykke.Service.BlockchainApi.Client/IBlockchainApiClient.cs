@@ -199,7 +199,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should affect transactions returned by the
         /// <see cref="GetBroadcastedTransactionAsync"/> and <see cref="TryGetBroadcastedTransactionAsync"/>
         /// </summary>
-        Task ForgetBroadcastedTransactionsAsync(Guid operationId);
+        Task<bool> ForgetBroadcastedTransactionsAsync(Guid operationId);
 
         /// <summary>
         /// Should start observation of the transactions that transfer fund from the address. 
