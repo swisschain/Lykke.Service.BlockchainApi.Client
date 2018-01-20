@@ -214,14 +214,14 @@ namespace Lykke.Service.BlockchainApi.Client
 
         /// <summary>
         /// Should start observation of the transactions that transfer fund to the address. 
-        /// Should affect result of the <see cref="GetHistoryOfIncomingTransactions"/>.
+        /// Should affect result of the <see cref="GetHistoryOfIncomingTransactionsAsync"/>.
         /// </summary>
         /// <param name="address">Address for which incoming transactions history should be observed</param>
         /// <returns>
         /// true - if transactions observation is started. 
         /// false - if transactions observation was already started fot the given <paramref name="address"/>
         /// </returns>
-        Task<bool> StartHistoryObservationOfIncomingTransactions(string address);
+        Task<bool> StartHistoryObservationOfIncomingTransactionsAsync(string address);
 
         /// <summary>
         /// Should return completed transactions that transfer fund from the <paramref name="address"/> and that 
@@ -234,7 +234,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactions(string address, string afterHash, int take, Func<string, int> assetAccuracyProvider);
+        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfOutgoingTransactionsAsync(string address, string afterHash, int take, Func<string, int> assetAccuracyProvider);
 
         /// <summary>
         /// Should return completed transactions that transfer fund to the <paramref name="address"/> and that 
@@ -247,7 +247,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
-        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactions(string address, string afterHash, int take, Func<string, int> assetAccuracyProvider);
+        Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactionsAsync(string address, string afterHash, int take, Func<string, int> assetAccuracyProvider);
 
 
         #endregion

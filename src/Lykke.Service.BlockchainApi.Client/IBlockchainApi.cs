@@ -175,7 +175,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         /// <param name="address">Address for which incoming transactions history should be observed</param>
         [Post("/api/transactions/history/from/{address}/observation")]
-        Task StartHistoryObservationOfIncomingTransactions(string address);
+        Task StartHistoryObservationOfIncomingTransactionsAsync(string address);
 
         /// <summary>
         /// Should return completed transactions that transfer fund from the <paramref name="address"/> and that 
@@ -188,7 +188,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
         [Get("/api/transactions/history/from/{address}")]
-        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfOutgoingTransactions(string address, string afterHash, int take);
+        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfOutgoingTransactionsAsync(string address, string afterHash, int take);
 
         /// <summary>
         /// Should return completed transactions that transfer fund to the <paramref name="address"/> and that 
@@ -201,7 +201,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
         [Get("/api/transactions/history/to/{address}")]
-        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfIncomingTransactions(string address, string afterHash, int take);
+        Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfIncomingTransactionsAsync(string address, string afterHash, int take);
 
         #endregion
     }
