@@ -354,11 +354,20 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public Task ForgetBroadcastedTransactionsAsync(Guid operationId)
+        public async Task<bool> ForgetBroadcastedTransactionsAsync(Guid operationId)
         {
-            ValidateOperationIdIsNotEmpty(operationId);
+            try
+            {
+                ValidateOperationIdIsNotEmpty(operationId);
 
-            return _runner.RunWithRetriesAsync(() => _api.ForgetBroadcastedTransactionAsync(operationId));
+                await _runner.RunWithRetriesAsync(() => _api.ForgetBroadcastedTransactionAsync(operationId));
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <inheritdoc />
@@ -370,7 +379,7 @@ namespace Lykke.Service.BlockchainApi.Client
             {
                 await _runner.RunWithRetriesAsync(() => _api.StartHistoryObservationOfOutgoingTransactionsAsync(address));
             }
-            catch (ErrorResponseException ex) when(ex.StatusCode == HttpStatusCode.Conflict)
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
             {
                 return false;
             }
