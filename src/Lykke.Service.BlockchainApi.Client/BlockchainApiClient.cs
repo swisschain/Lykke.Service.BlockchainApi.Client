@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Client.Models;
@@ -24,11 +25,11 @@ namespace Lykke.Service.BlockchainApi.Client
         private readonly IBlockchainApi _api;
         private readonly ApiRunner _runner;
 
-        public BlockchainApiClient(string hostUrl, int retriesCount = 5)
+        public BlockchainApiClient(ILog log, string hostUrl, int retriesCount = 5)
         {
             HostUrl = hostUrl ?? throw new ArgumentNullException(nameof(hostUrl));
 
-            _httpClient = new HttpClient
+            _httpClient = new HttpClient(new HttpErrorLoggingHandler(log))
             {
                 BaseAddress = new Uri(hostUrl),
                 DefaultRequestHeaders =
@@ -273,7 +274,7 @@ namespace Lykke.Service.BlockchainApi.Client
                         IncludeFee = includeFee
                     }));
             }
-            catch (ErrorResponseException ex) when(ex.StatusCode == HttpStatusCode.NotAcceptable)
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotAcceptable)
             {
                 throw new NonAcceptableAmountException($"Transaction amount {amount} is non acceptable", ex);
             }
