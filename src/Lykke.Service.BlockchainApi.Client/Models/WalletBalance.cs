@@ -45,17 +45,19 @@ namespace Lykke.Service.BlockchainApi.Client.Models
 
             try
             {
-                var balance = Conversions.CoinsFromContract(contract.Balance, assetAccuracy);
+                Balance = Conversions.CoinsFromContract(contract.Balance, assetAccuracy);
 
-                if (balance <= 0)
+                if (Balance <= 0)
                 {
-                    throw new ResultValidationException("Balance should be positive number", balance);
+                    throw new ResultValidationException("Balance should be positive number", contract.Balance);
                 }
             }
             catch (ConversionException ex)
             {
                 throw new ResultValidationException("Failed to parse balance", contract.Balance, ex);
             }
+
+            
         }
     }
 }
