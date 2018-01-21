@@ -37,7 +37,7 @@ namespace Lykke.Service.BlockchainApi.Client
         {
             var message = new StringBuilder();
 
-            message.AppendLine($"Request {id}: {request.RequestUri}");
+            message.AppendLine($"Request {id}: {request.Method.ToString().ToUpper()} {request.RequestUri}");
 
             foreach (var header in request.Headers)
             {
@@ -68,7 +68,7 @@ namespace Lykke.Service.BlockchainApi.Client
         {
             var message = new StringBuilder();
 
-            message.AppendLine($"Response {id}: {response.StatusCode} {response.ReasonPhrase}");
+            message.AppendLine($"Response {id}: {(int)response.StatusCode} {response.StatusCode} - {response.ReasonPhrase}");
 
             foreach (var header in response.Headers)
             {
