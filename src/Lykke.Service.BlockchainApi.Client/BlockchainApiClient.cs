@@ -351,7 +351,7 @@ namespace Lykke.Service.BlockchainApi.Client
 
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedTransactionAsync(operationId));
 
-            return new BroadcastedTransaction(apiResponse, asset.Accuracy);
+            return new BroadcastedTransaction(apiResponse, asset.Accuracy, operationId);
         }
 
         /// <inheritdoc />
