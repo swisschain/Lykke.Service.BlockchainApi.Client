@@ -33,37 +33,6 @@ namespace Lykke.Service.BlockchainApi.Client
             return response;
         }
 
-        private async Task LogResponseAsync(HttpResponseMessage response, Guid id)
-        {
-            var message = new StringBuilder();
-
-            message.AppendLine($"Response {id}: {response.StatusCode} {response.ReasonPhrase}");
-
-            foreach (var header in response.Headers)
-            {
-                message.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
-            }
-
-            if (response.Content != null)
-            {
-                foreach (var header in response.Content.Headers)
-                {
-                    message.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
-                }
-
-                if (response.Content is StringContent ||
-                    IsTextBasedContentType(response.Headers) ||
-                    IsTextBasedContentType(response.Content.Headers))
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-
-                    message.AppendLine(content);
-                }
-            }
-
-            _log.WriteWarning("HTTP API response ->", message.ToString(), "Response status is non success");
-        }
-
         private async Task LogRequestAsync(HttpRequestMessage request, Guid id)
         {
             var message = new StringBuilder();
@@ -92,10 +61,41 @@ namespace Lykke.Service.BlockchainApi.Client
                 }
             }
 
-            _log.WriteWarning("HTTP API request <-", message.ToString(), "Response status is non success");
+            _log.WriteWarning("HTTP API request ->", message.ToString(), "Response status is non success");
         }
 
-        static bool IsTextBasedContentType(HttpHeaders headers)
+        private async Task LogResponseAsync(HttpResponseMessage response, Guid id)
+        {
+            var message = new StringBuilder();
+
+            message.AppendLine($"Response {id}: {response.StatusCode} {response.ReasonPhrase}");
+
+            foreach (var header in response.Headers)
+            {
+                message.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
+            }
+
+            if (response.Content != null)
+            {
+                foreach (var header in response.Content.Headers)
+                {
+                    message.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
+                }
+
+                if (response.Content is StringContent ||
+                    IsTextBasedContentType(response.Headers) ||
+                    IsTextBasedContentType(response.Content.Headers))
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+
+                    message.AppendLine(content);
+                }
+            }
+
+            _log.WriteWarning("HTTP API response <-", message.ToString(), "Response status is non success");
+        }
+
+        private static bool IsTextBasedContentType(HttpHeaders headers)
         {
             string[] types = { "html", "text", "xml", "json", "txt", "x-www-form-urlencoded" };
 
