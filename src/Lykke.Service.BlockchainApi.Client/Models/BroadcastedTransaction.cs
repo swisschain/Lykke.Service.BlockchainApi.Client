@@ -50,7 +50,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public string Error { get; }
 
-        public BroadcastedTransaction(BroadcastedTransactionResponse contract, int assetAccuracy)
+        public BroadcastedTransaction(BroadcastedTransactionResponse contract, int assetAccuracy, Guid expectedOperationId)
         {
             if (contract == null)
             {
@@ -59,6 +59,10 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             if (contract.OperationId == Guid.Empty)
             {
                 throw new ResultValidationException("Operation ID is required", contract.OperationId);
+            }
+            if (contract.OperationId != expectedOperationId)
+            {
+                throw new ResultValidationException($"Unexpected operation ID {contract.OperationId} in the transaction. Expected operation ID: {expectedOperationId}");
             }
             if (!Enum.IsDefined(typeof(BroadcastedTransactionState), contract.State))
             {
