@@ -60,7 +60,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Operation ID is required", contract.OperationId);
             }
-            if (Enum.IsDefined(typeof(BroadcastedTransactionState), contract.State))
+            if (!Enum.IsDefined(typeof(BroadcastedTransactionState), contract.State))
             {
                 throw new ResultValidationException("Unknown transaction state", contract.State);
             }
