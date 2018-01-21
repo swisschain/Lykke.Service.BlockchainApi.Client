@@ -61,7 +61,7 @@ namespace Lykke.Service.BlockchainApi.Client
                 }
             }
 
-            _log.WriteWarning("HTTP API request ->", message.ToString(), "Response status is non success");
+            _log.WriteWarning("HTTP API response ->", message.ToString(), "Response status is non success");
         }
 
         private async Task LogRequestAsync(HttpRequestMessage request, Guid id)
@@ -92,7 +92,7 @@ namespace Lykke.Service.BlockchainApi.Client
                 }
             }
 
-            _log.WriteWarning("HTTP API response <-", message.ToString(), "Response status is non success");
+            _log.WriteWarning("HTTP API request <-", message.ToString(), "Response status is non success");
         }
 
         static bool IsTextBasedContentType(HttpHeaders headers)
