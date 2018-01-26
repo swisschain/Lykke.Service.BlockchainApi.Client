@@ -5,14 +5,10 @@ using Newtonsoft.Json;
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
     /// <summary>
-    /// Broadcasted transaction contract
-    /// Response for the:
-    /// - [GET] /api/transactions/broadcast/{operationId}
-    ///     Errors:
-    ///         - 204 No Content: specified transaction not found.
+    /// Base class for the broadcasted transaction contract
     /// </summary>
     [PublicAPI]
-    public class BroadcastedTransactionResponse
+    public abstract class BaseBroadcastedTransactionResponse
     {
         /// <summary>
         /// Lykke unique operation ID
@@ -31,16 +27,6 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// </summary>
         [JsonProperty("timestamp")]
         public DateTime Timestamp { get; set; }
-
-        /// <summary>
-        /// Amount without fee. Is integer as string, aligned 
-        /// to the asset accuracy. Actual value can be 
-        /// writen using <see cref="Conversions.CoinsToContract"/>
-        /// and can be read using <see cref="Conversions.CoinsFromContract"/>
-        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
-        /// </summary>
-        [JsonProperty("amount")]
-        public string Amount { get; set; }
 
         /// <summary>
         /// Fee. Is integer as string, aligned 
@@ -67,5 +53,21 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// </summary>
         [JsonProperty("error")]
         public string Error { get; set; }
+
+        /// <summary>
+        /// Error code.
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Failed"/>
+        /// </summary>
+        [JsonProperty("errorCode")]
+        public TransactionExecutionError? ErrorCode { get; set; }
+
+        /// <summary>
+        /// Incremental ID of the moment, when the transaction
+        /// state changing is detected. It should be the same
+        /// sequence as for <see cref="Balances.WalletBalanceContract.Nonce"/>. 
+        /// For the most blockchains it could be the block number.
+        /// </summary>
+        [JsonProperty("nonce")]
+        public long Nonce { get; set; }
     }
 }

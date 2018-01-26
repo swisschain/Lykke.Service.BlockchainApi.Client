@@ -20,6 +20,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         Task<IsAliveResponse> GetIsAliveAsync();
 
+        /// <summary>
+        /// Should return blockchain API capabilities.
+        /// </summary>
+        /// <returns></returns>
+        Task<BlockchainCapabilities> GetCapabilitiesAsync();
+
         #endregion
 
 
@@ -124,11 +130,14 @@ namespace Lykke.Service.BlockchainApi.Client
         #endregion
 
 
-        #region Transactions
+        #region Transactions building
 
         /// <summary>
-        /// Should build not signed transaction. If transaction with the specified 
-        /// <paramref name="operationId"/> already was built, 
+        /// Should build not signed transaction to transfer from the single source to the single destination. If transaction with the specified 
+        /// <paramref name="operationId"/> already was built by one of the
+        /// <see cref="BuildSingleTransactionAsync"/>,
+        /// <see cref="BuildTransactionWithManyInputsAsync"/> or
+        /// <see cref="BuildTransactionWithManyOutputsAsync"/>, 
         /// it should be ignored and regular response should be returned.
         /// </summary>
         /// <param name="operationId">Lykke unique operation ID</param>
@@ -137,30 +146,72 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="asset">Blockchain asset to transfer</param>
         /// <param name="amount">Amount to transfer</param>
         /// <param name="includeFee">Flag, which indicates, that fee should be included in the specified amount</param>
-        /// <exception cref="NonAcceptableAmountException">
-        /// Tranaction <paramref name="amount"/> is non acceptable.
-        /// Transaction building should be retried with different <paramref name="amount"/>
-        /// </exception>
-        Task<TransactionBuildingResult> BuildTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee);
+        Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee);
 
         /// <summary>
-        /// Optional method.
+        /// Optional method. <see cref="GetCapabilitiesAsync"/>
+        /// 
+        /// Should build not signed transaction to transfer from the single source to the single destination. If transaction with the specified 
+        /// <paramref name="operationId"/> already was built by one of the
+        /// <see cref="BuildSingleTransactionAsync"/>,
+        /// <see cref="BuildTransactionWithManyInputsAsync"/> or
+        /// <see cref="BuildTransactionWithManyOutputsAsync"/>, 
+        /// it should be ignored and regular response should be returned.
+        /// Fee should be included in the specified amount.
+        /// </summary>
+        /// <param name="operationId">Lykke unique operation ID</param>
+        /// <param name="inputs">Sources</param>
+        /// <param name="toAddress">Destination address</param>
+        /// <param name="asset">Blockchain asset to transfer</param>
+        /// <exception cref="NotSupportedException">
+        /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
+        /// </exception>
+        Task<TransactionBuildingResult> BuildTransactionWithManyInputsAsync(Guid operationId, IEnumerable<TransactionInput> inputs, string toAddress, BlockchainAsset asset);
+
+        /// <summary>
+        /// Optional method. <see cref="GetCapabilitiesAsync"/>
+        /// 
+        /// Should build not signed transaction to transfer from the single source to the single destination. If transaction with the specified 
+        /// <paramref name="operationId"/> already was built by one of the
+        /// <see cref="BuildSingleTransactionAsync"/>,
+        /// <see cref="BuildTransactionWithManyInputsAsync"/> or
+        /// <see cref="BuildTransactionWithManyOutputsAsync"/>, 
+        /// it should be ignored and regular response should be returned.
+        /// Fee should be added to the specified amount.
+        /// </summary>
+        /// <param name="operationId">Lykke unique operation ID</param>
+        /// <param name="fromAddress">Destination address</param>
+        /// <param name="outputs">Destinations</param>
+        /// <param name="asset">Blockchain asset to transfer</param>
+        /// ///
+        /// <exception cref="NotSupportedException">
+        /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
+        /// </exception>
+        Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, IEnumerable<TransactionOutput> outputs, BlockchainAsset asset);
+
+
+        /// <summary>
+        /// Optional method. <see cref="GetCapabilitiesAsync"/>
         /// 
         /// Should rebuild not signed transaction with the specified fee factor, 
         /// if applicable for the given blockchain. This should be implemented, 
         /// if blockchain allows transaction rebuilding (substitution) with new fee. 
         /// This will be called if transaction is stuck in the “in-progress” state for too long,
-        /// to try to execute transaction with higher fee. <see cref="BuildTransactionAsync"/> with 
+        /// to try to execute transaction with higher fee. <see cref="BuildSingleTransactionAsync"/> with 
         /// the same <paramref name="operationId"/> should precede to the given call. 
-        /// Transaction should be rebuilt with parameters that were passed to the <see cref="BuildTransactionAsync"/>.
+        /// Transaction should be rebuilt with parameters that were passed to the <see cref="BuildSingleTransactionAsync"/>.
         /// </summary>
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="feeFactor">Multiplier for the transaction fee. Blockchain will multiply regular fee by this factor</param>
-        /// <exception cref="NonAcceptableAmountException">
-        /// Tranaction amount is non acceptable.
-        /// Transaction building should be retried with different amount
+        /// /// <exception cref="NotSupportedException">
+        /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
         /// </exception>
         Task<TransactionBuildingResult> RebuildTransactionAsync(Guid operationId, decimal feeFactor);
+
+        #endregion
+
+
+        #region Transactions broadcasting
 
         /// <summary>
         /// Should broadcast the signed transaction and start to observe its execution.
@@ -174,36 +225,75 @@ namespace Lykke.Service.BlockchainApi.Client
         /// true - if transaction is broadcasted. false - if transaction with given <paramref name="operationId"/> 
         /// and <paramref name="signedTransaction"/> was already broadcasted
         /// </returns>
-        Task<bool> BroadcastTransactionAsync(Guid operationId, string signedTransaction);
+        Task<TransactionBroadcastingResult> BroadcastTransactionAsync(Guid operationId, string signedTransaction);
 
         /// <summary>
-        /// Should return broadcasted  transaction by the operationId. All transactions, that were broadcasted 
+        /// Should return broadcasted  transaction by the operationId. All transactions with single input and output, that were broadcasted 
         /// by the <see cref="BroadcastTransactionAsync"/> should be available here.
         /// </summary>
         /// <param name="operationId">Operation ID</param>
         /// <param name="asset">Transaction asset for amount calculation</param>
         /// <returns>Broadcasted transaction or null</returns>
-        Task<BroadcastedTransaction> TryGetBroadcastedTransactionAsync(Guid operationId, BlockchainAsset asset);
+        Task<BroadcastedSingleTransaction> TryGetBroadcastedSingleTransactionAsync(Guid operationId, BlockchainAsset asset);
 
         /// <summary>
-        /// Should return broadcasted transaction be the operationId. All transactions, that were broadcasted 
+        /// Should return broadcasted transaction be the operationId. All transactions with single input and output, that were broadcasted 
         /// by the <see cref="BroadcastTransactionAsync"/> should be available here
         /// </summary>
         /// <param name="operationId">Operation ID</param>
         /// <param name="asset">Transaction asset for amount calculation</param>
         /// <exception cref="ErrorResponseException">Status code: <see cref="HttpStatusCode.NoContent"/> - transaction is not found</exception>
-        Task<BroadcastedTransaction> GetBroadcastedTransactionAsync(Guid operationId, BlockchainAsset asset);
+        Task<BroadcastedSingleTransaction> GetBroadcastedSingleTransactionAsync(Guid operationId, BlockchainAsset asset);
+
+        /// <summary>
+        /// Should return broadcasted transaction be the operationId. All transactions with many inputs, that were broadcasted 
+        /// by the <see cref="BroadcastTransactionAsync"/> should be available here
+        /// </summary>
+        /// <param name="operationId">Operation ID</param>
+        /// <param name="asset">Transaction asset for amount calculation</param>
+        Task<BroadcastedTransactionWithManyInputs> TryGetBroadcastedTransactionWithManyInputsAsync(Guid operationId, BlockchainAsset asset);
+
+        /// <summary>
+        /// Should return broadcasted transaction be the operationId. All transactions with many outputs, that were broadcasted 
+        /// by the <see cref="BroadcastTransactionAsync"/> should be available here
+        /// </summary>
+        /// <param name="operationId">Operation ID</param>
+        /// <param name="asset">Transaction asset for amount calculation</param>
+        /// <exception cref="ErrorResponseException">Status code: <see cref="HttpStatusCode.NoContent"/> - transaction is not found</exception>
+        Task<BroadcastedTransactionWithManyInputs> GetBroadcastedTransactionWithManyInputsAsync(Guid operationId, BlockchainAsset asset);
+
+        /// <summary>
+        /// Should return broadcasted transaction be the operationId. All transactions with many inputs, that were broadcasted 
+        /// by the <see cref="BroadcastTransactionAsync"/> should be available here
+        /// </summary>
+        /// <param name="operationId">Operation ID</param>
+        /// <param name="asset">Transaction asset for amount calculation</param>
+        Task<BroadcastedTransactionWithManyOutputs> TryGetBroadcastedTransactionWithManyOutputsAsync(Guid operationId, BlockchainAsset asset);
+
+        /// <summary>
+        /// Should return broadcasted transaction be the operationId. All transactions with many outputs, that were broadcasted 
+        /// by the <see cref="BroadcastTransactionAsync"/> should be available here
+        /// </summary>
+        /// <param name="operationId">Operation ID</param>
+        /// <param name="asset">Transaction asset for amount calculation</param>
+        /// <exception cref="ErrorResponseException">Status code: <see cref="HttpStatusCode.NoContent"/> - transaction is not found</exception>
+        Task<BroadcastedTransactionWithManyOutputs> GetBroadcastedTransactionWithManyOutputsAsync(Guid operationId, BlockchainAsset asset);
 
         /// <summary> 
         /// Should remove specified transaction from the broadcasted transactions.
         /// Should affect transactions returned by the
-        /// <see cref="GetBroadcastedTransactionAsync"/> and <see cref="TryGetBroadcastedTransactionAsync"/>
+        /// <see cref="GetBroadcastedSingleTransactionAsync"/> and <see cref="TryGetBroadcastedSingleTransactionAsync"/>
         /// </summary>
         Task<bool> ForgetBroadcastedTransactionsAsync(Guid operationId);
 
+        #endregion
+
+
+        #region Transactions history
+
         /// <summary>
         /// Should start observation of the transactions that transfer fund from the address. 
-        /// Should affect result of the [GET] /api/transactions/history/from/{address}.
+        /// Should affect result of the <see cref="GetHistoryOfOutgoingTransactionsAsync"/>.
         /// </summary>
         /// <param name="address">Address for which outgoing transactions history should be observed</param>
         /// <returns>
@@ -249,6 +339,28 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
         Task<IEnumerable<HistoricalTransaction>> GetHistoryOfIncomingTransactionsAsync(string address, string afterHash, int take, Func<string, int> assetAccuracyProvider);
 
+
+        /// <summary>
+        /// Should stop observation of the transactions that transfer fund from the address. 
+        /// Should affect result of the <see cref="GetHistoryOfOutgoingTransactionsAsync"/>.
+        /// </summary>
+        /// <param name="address">Address for which outgoing transactions history observation should be stopped</param>
+        /// <returns>
+        /// true - if transactions observation is stopped. 
+        /// false - if transactions observation for the given <paramref name="address"/> was not started yet 
+        /// </returns>
+        Task<bool> StopHistoryObservationOfOutgoingTransactionsAsync(string address);
+
+        /// <summary>
+        /// Should stop observation of the transactions that transfer fund to the address. 
+        /// Should affect result of the <see cref="GetHistoryOfIncomingTransactionsAsync"/>.
+        /// </summary>
+        /// <param name="address">Address for which incoming transactions history should be stopped</param>
+        /// <returns>
+        /// true - if transactions observation is sopped. 
+        /// false - if transactions observation for the given <paramref name="address"/> was not started yet
+        /// </returns>
+        Task<bool> StopHistoryObservationOfIncomingTransactionsAsync(string address);
 
         #endregion
     }

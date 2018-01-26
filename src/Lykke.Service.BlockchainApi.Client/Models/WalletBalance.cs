@@ -25,6 +25,13 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public decimal Balance { get; }
 
+        /// <summary>
+        /// Incremental ID of the moment, when balance is updated. It should be the same sequence
+        /// as for nonce in the <see cref="IBlockchainApiClient.GetBroadcastedSingleTransactionAsync"/> response
+        /// For the most blockchains it could be the block number.
+        /// </summary>
+        public long Nonce { get; }
+
         public WalletBalance(WalletBalanceContract contract, int assetAccuracy)
         {
             if (contract == null)
@@ -39,10 +46,14 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Asset ID is required", contract.AssetId);
             }
+            if (Nonce == 0)
+            {
+                throw new ResultValidationException("Nonce is required", contract.Nonce);
+            }
 
             Address = contract.Address;
             AssetId = contract.AssetId;
-
+            
             try
             {
                 Balance = Conversions.CoinsFromContract(contract.Balance, assetAccuracy);
@@ -56,6 +67,8 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Failed to parse balance", contract.Balance, ex);
             }
+
+            Nonce = Nonce;
         }
     }
 }
