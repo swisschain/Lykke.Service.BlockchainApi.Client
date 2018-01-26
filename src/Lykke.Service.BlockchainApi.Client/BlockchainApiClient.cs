@@ -97,7 +97,7 @@ namespace Lykke.Service.BlockchainApi.Client
         {
             var statisticsBuilder = new EnumerationStatisticsBuilder();
             string continuation = null;
-            
+
             do
             {
                 var response = await GetAssetsAsync(batchSize, continuation);
@@ -149,7 +149,7 @@ namespace Lykke.Service.BlockchainApi.Client
 
             return result;
         }
-        
+
         /// <inheritdoc />
         public async Task<BlockchainAsset> GetAssetAsync(string assetId)
         {
@@ -351,7 +351,7 @@ namespace Lykke.Service.BlockchainApi.Client
 
         /// <inheritdoc />
         public async Task<TransactionBuildingResult> RebuildTransactionAsync(
-            Guid operationId, 
+            Guid operationId,
             decimal feeFactor)
         {
             ValidateOperationIdIsNotEmpty(operationId);
@@ -390,10 +390,10 @@ namespace Lykke.Service.BlockchainApi.Client
             try
             {
                 var response = await _runner.RunWithRetriesAsync(() => _api.BroadcastTransactionAsync(new BroadcastTransactionRequest
-                {
-                    OperationId = operationId,
-                    SignedTransaction = signedTransaction
-                }));
+                    {
+                        OperationId = operationId,
+                        SignedTransaction = signedTransaction
+                    }));
 
                 return TransactionBroadcastingResultMapper.FromContract(response);
             }
@@ -406,73 +406,79 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <inheritdoc />
         public async Task<BroadcastedSingleTransaction> TryGetBroadcastedSingleTransactionAsync(Guid operationId, BlockchainAsset asset)
         {
-            try
-            {
-                return await GetBroadcastedSingleTransactionAsync(operationId, asset);
-            }
-            catch (ErrorResponseException ex) when(ex.StatusCode == HttpStatusCode.NoContent)
-            {
-                return null;
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task<BroadcastedSingleTransaction> GetBroadcastedSingleTransactionAsync(Guid operationId, BlockchainAsset asset)
-        {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateAssetIsNotNull(asset);
 
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedSingleTransactionAsync(operationId));
 
-            return new BroadcastedSingleTransaction(apiResponse, asset.Accuracy, operationId);
+            return apiResponse == null
+                ? null
+                : new BroadcastedSingleTransaction(apiResponse, asset.Accuracy, operationId);
+        }
+
+        /// <inheritdoc />
+        public async Task<BroadcastedSingleTransaction> GetBroadcastedSingleTransactionAsync(Guid operationId, BlockchainAsset asset)
+        {
+            var result = await TryGetBroadcastedSingleTransactionAsync(operationId, asset);
+
+            if (result == null)
+            {
+                throw new ResultValidationException("Transaction is not found");
+            }
+
+            return result;
         }
 
         /// <inheritdoc />
         public async Task<BroadcastedTransactionWithManyInputs> TryGetBroadcastedTransactionWithManyInputsAsync(Guid operationId, BlockchainAsset asset)
-        {
-            try
-            {
-                return await TryGetBroadcastedTransactionWithManyInputsAsync(operationId, asset);
-            }
-            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
-            {
-                return null;
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task<BroadcastedTransactionWithManyInputs> GetBroadcastedTransactionWithManyInputsAsync(Guid operationId, BlockchainAsset asset)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateAssetIsNotNull(asset);
 
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedTransactionWithManyInputsAsync(operationId));
 
-            return new BroadcastedTransactionWithManyInputs(apiResponse, asset.Accuracy, operationId);
+            return apiResponse == null
+                ? null
+                : new BroadcastedTransactionWithManyInputs(apiResponse, asset.Accuracy, operationId);
+        }
+
+        /// <inheritdoc />
+        public async Task<BroadcastedTransactionWithManyInputs> GetBroadcastedTransactionWithManyInputsAsync(Guid operationId, BlockchainAsset asset)
+        {
+            var result = await TryGetBroadcastedTransactionWithManyInputsAsync(operationId, asset);
+
+            if (result == null)
+            {
+                throw new ResultValidationException("Transaction is not found");
+            }
+
+            return result;
         }
 
         /// <inheritdoc />
         public async Task<BroadcastedTransactionWithManyOutputs> TryGetBroadcastedTransactionWithManyOutputsAsync(Guid operationId, BlockchainAsset asset)
-        {
-            try
-            {
-                return await TryGetBroadcastedTransactionWithManyOutputsAsync(operationId, asset);
-            }
-            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
-            {
-                return null;
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task<BroadcastedTransactionWithManyOutputs> GetBroadcastedTransactionWithManyOutputsAsync(Guid operationId, BlockchainAsset asset)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateAssetIsNotNull(asset);
 
             var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedTransactionWithManyOutputsAsync(operationId));
 
-            return new BroadcastedTransactionWithManyOutputs(apiResponse, asset.Accuracy, operationId);
+            return apiResponse == null
+                ? null
+                : new BroadcastedTransactionWithManyOutputs(apiResponse, asset.Accuracy, operationId);
+        }
+
+        /// <inheritdoc />
+        public async Task<BroadcastedTransactionWithManyOutputs> GetBroadcastedTransactionWithManyOutputsAsync(Guid operationId, BlockchainAsset asset)
+        {
+            var result = await TryGetBroadcastedTransactionWithManyOutputsAsync(operationId, asset);
+
+            if (result == null)
+            {
+                throw new ResultValidationException("Transaction is not found");
+            }
+
+            return result;
         }
 
         /// <inheritdoc />
