@@ -35,12 +35,12 @@ namespace Lykke.Service.BlockchainApi.Contract.Balances
         /// <summary>
         /// Incremental ID of the moment, when balance
         /// is updated. It should be the same sequence
-        /// as for nonce in the 
+        /// as for block in the 
         /// [GET] /api/transactions/broadcast/* response
         /// For the most blockchains it could be the 
-        /// block number
+        /// block number/height
         /// </summary>
-        [JsonProperty("nonce")]
-        public long Nonce { get; set; }
+        [JsonProperty("block")]
+        public long Block { get; set; }
     }
 }

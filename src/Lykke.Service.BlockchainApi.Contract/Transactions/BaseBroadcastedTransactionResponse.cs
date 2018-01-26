@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Lykke.Service.BlockchainApi.Contract.Balances;
 using Newtonsoft.Json;
 
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
@@ -64,10 +65,10 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// <summary>
         /// Incremental ID of the moment, when the transaction
         /// state changing is detected. It should be the same
-        /// sequence as for <see cref="Balances.WalletBalanceContract.Nonce"/>. 
-        /// For the most blockchains it could be the block number.
+        /// sequence as for <see cref="WalletBalanceContract.Block"/>. 
+        /// For the most blockchains it could be the block number/height.
         /// </summary>
-        [JsonProperty("nonce")]
-        public long Nonce { get; set; }
+        [JsonProperty("block")]
+        public long Block { get; set; }
     }
 }
