@@ -16,7 +16,8 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
     public class BroadcastedTransactionWithManyOutputsResponse : BaseBroadcastedTransactionResponse
     {
         /// <summary>
-        /// Destinations
+        /// Destinations.
+        /// Should be non null if the <see cref="BaseBroadcastedTransactionResponse.State"/> is <see cref="BroadcastedTransactionState.Completed"/>.
         /// </summary>
         [JsonProperty("outputs")]
         public IReadOnlyList<TransactionOutputContract> Outputs { get; set; }
