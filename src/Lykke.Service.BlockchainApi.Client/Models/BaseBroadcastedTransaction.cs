@@ -47,10 +47,10 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// <summary>
         /// Incremental ID of the moment, when the transaction
         /// state changing is detected. It should be the same
-        /// sequence as for <see cref="WalletBalance.Nonce"/>. 
-        /// For the most blockchains it could be the block number.
+        /// sequence as for <see cref="WalletBalance.Block"/>. 
+        /// For the most blockchains it could be the block number/height.
         /// </summary>
-        public long Nonce { get; }
+        public long Block { get; }
 
         protected BaseBroadcastedTransaction(BaseBroadcastedTransactionResponse contract, int assetAccuracy, Guid expectedOperationId)
         {
@@ -82,9 +82,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Hash is required for the completed transaction", contract.Hash);
             }
-            if (contract.Nonce == 0)
+            if (contract.Block == 0)
             {
-                throw new ResultValidationException("Nonce is required");
+                throw new ResultValidationException("Block is required");
             }
 
             if (contract.Fee != null)
@@ -108,7 +108,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             State = contract.State;
             Timestamp = contract.Timestamp;
             Hash = contract.Hash;
-            Nonce = contract.Nonce;
+            Block = contract.Block;
 
             if (State == BroadcastedTransactionState.Failed)
             {
