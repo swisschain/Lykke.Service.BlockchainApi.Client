@@ -6,6 +6,7 @@ using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Addresses;
 using Lykke.Service.BlockchainApi.Contract.Assets;
 using Lykke.Service.BlockchainApi.Contract.Balances;
+using Lykke.Service.BlockchainApi.Contract.Common;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Refit;
 
@@ -13,11 +14,22 @@ namespace Lykke.Service.BlockchainApi.Client
 {
     internal interface IBlockchainApi
     {
+        #region General
+
         /// <summary>
         /// Should return some general service info. Used to check is service running
         /// </summary>
         [Get("/api/isalive")]
         Task<IsAliveResponse> GetIsAliveAsync();
+
+        /// <summary>
+        /// Should return API capabilities set
+        /// </summary>
+        [Get("/api/capabilities")]
+        Task<CapabilitiesResponse> GetCapabilitiesAsync();
+
+        #endregion
+
 
         #region Assets
 
@@ -86,7 +98,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Wallets balance observation is enabled by the 
         /// <see cref="StartBalanceObservationAsync"/> and disabled by the <see cref="StopBalanceObservationAsync"/>.
         /// If there are no balances to return, empty array should be returned.
-        /// Amount of the returned wallets should not exceed <paramref name="take"/>. 
+        /// Amount of the returned balances should not exceed <paramref name="take"/>. 
         /// Optional continuation contains context of the previous request, to let Blockchain.Api 
         /// resume reading of the balances from the previous position.
         /// If continuation is empty, balances should be read from the beginning.
@@ -102,18 +114,41 @@ namespace Lykke.Service.BlockchainApi.Client
         #region Transactions
 
         /// <summary>
-        /// Should build not signed transaction. If transaction with the specified 
-        /// <see cref="BroadcastTransactionRequest.OperationId"/> already was built, 
-        /// it should be ignored and regular response should be returned.
-        /// 
-        /// Errors:
-        /// - 406 Not Acceptable: transaction can’t be built due to non acceptable amount (too small for example).
+        /// Should build not signed transaction to transfer from the single source to the single destination.
+        /// If the transaction with the specified operationId has already been built by one of the [POST] /api/transactions/* call,
+        /// it should be ignored and regular response (as in the first request) should be returned
         /// </summary>
-        [Post("/api/transactions")]
-        Task<BuildTransactionResponse> BuildTransactionAsync([Body] BuildTransactionRequest body);
+        [Post("/api/transactions/single")]
+        Task<BuildTransactionResponse> BuildSingleTransactionAsync([Body] BuildSingleTransactionRequest body);
 
         /// <summary>
-        /// Optional method.
+        /// Optional. See <see cref="GetCapabilitiesAsync"/>
+        /// 
+        /// Should build not signed transaction with many inputs. If the transaction with the specified operationId has 
+        /// already been built by one of the[POST] /api/transactions call, it should be ignored and regular response 
+        /// (as in the first request) should be returned. Fee should be included in the specified amount.
+        /// 
+        /// Errors:
+        /// - 501 Not Implemented - function is not implemented in the blockchain.
+        /// </summary>
+        [Post("/api/transactions/many-inputs")]
+        Task<BuildTransactionResponse> BuildTransactionWithManyInputsAsync([Body] BuildTransactionWithManyInputsRequest body);
+
+        /// <summary>
+        /// Optional. See <see cref="GetCapabilitiesAsync"/>
+        /// 
+        /// Should build not signed transaction with many outputs. If the transaction with the specified operationId has 
+        /// already been built by one of the[POST] /api/transactions call, it should be ignored and regular response 
+        /// (as in the first request) should be returned. Fee should be added to the specified amount.
+        /// 
+        /// Errors:
+        /// - 501 Not Implemented - function is not implemented in the blockchain.
+        /// </summary>
+        [Post("/api/transactions/many-outputs")]
+        Task<BuildTransactionResponse> BuildTransactionWithManyOutputsAsync([Body] BuildTransactionWithManyOutputsRequest body);
+
+        /// <summary>
+        /// Optional. See <see cref="GetCapabilitiesAsync"/>
         /// 
         /// Should rebuild not signed transaction with the specified fee factor, 
         /// if applicable for the given blockchain. This should be implemented, 
@@ -125,7 +160,6 @@ namespace Lykke.Service.BlockchainApi.Client
         /// 
         /// Errors:
         /// - 501 Not Implemented - function is not implemented in the blockchain.
-        /// - 406 Not Acceptable: transaction can’t be built due to non acceptable amount (too small for example).
         /// </summary>
         [Put("/api/transactions")]
         Task<RebuildTransactionResponse> RebuildTransactionAsync([Body] RebuildTransactionRequest body);
@@ -137,23 +171,53 @@ namespace Lykke.Service.BlockchainApi.Client
         /// - 409 Conflict: transaction with specified operationId and signedTransaction is already broadcasted.
         /// </summary>
         [Post("/api/transactions/broadcast")]
-        Task BroadcastTransactionAsync([Body] BroadcastTransactionRequest body);
+        Task<BroadcastTransactionResponse> BroadcastTransactionAsync([Body] BroadcastTransactionRequest body);
 
         /// <summary>
-        /// Should return broadcasted  transaction by the operationId. All transactions, 
+        /// Should return broadcasted  transaction by the operationId. All transactions with single input and output, 
         /// that were broadcasted by the  <see cref="BroadcastTransactionAsync"/> should be available here.
+        /// 
         /// Errors:
         /// - 204 No content - specified transaction not found
         /// </summary>
-        [Get("/api/transactions/broadcast/{operationId}")]
-        Task<BroadcastedTransactionResponse> GetBroadcastedTransactionAsync(Guid operationId);
+        [Get("/api/transactions/broadcast/single/{operationId}")]
+        Task<BroadcastedSingleTransactionResponse> GetBroadcastedSingleTransactionAsync(Guid operationId);
+
+        /// <summary>
+        /// Optional. See <see cref="GetCapabilitiesAsync"/>
+        /// Should return broadcasted transaction by the operationId. All transactions with many inputs, that were broadcasted by the 
+        /// <see cref="BroadcastTransactionAsync"/> should be available here.
+        /// 
+        /// Errors:
+        /// - 501 Not Implemented - function is not implemented in the blockchain.
+        /// - 204 No content - specified transaction not found
+        /// </summary>
+        [Get("/api/transactions/broadcast/many-inputs/{operationId}")]
+        Task<BroadcastedTransactionWithManyInputsResponse> GetBroadcastedTransactionWithManyInputsAsync(Guid operationId);
+
+        /// <summary>
+        /// Optional. See <see cref="GetCapabilitiesAsync"/>
+        /// Should return broadcasted transaction by the operationId. All transactions with many outputs, that were broadcasted by the 
+        /// <see cref="BroadcastTransactionAsync"/> should be available here.
+        /// 
+        /// Errors:
+        /// - 501 Not Implemented - function is not implemented in the blockchain.
+        /// - 204 No content - specified transaction not found
+        /// </summary>
+        [Get("/api/transactions/broadcast/many-outputs/{operationId}")]
+        Task<BroadcastedTransactionWithManyOutputsResponse> GetBroadcastedTransactionWithManyOutputsAsync(Guid operationId);
 
         /// <summary>
         /// Should remove specified transaction from the broadcasted transactions. Should affect 
-        /// transactions returned by the <see cref="GetBroadcastedTransactionAsync"/>
+        /// transactions returned by the <see cref="GetBroadcastedSingleTransactionAsync"/>
         /// </summary>
         [Delete("/api/transactions/broadcast/{operationId}")]
         Task ForgetBroadcastedTransactionAsync(Guid operationId);
+
+        #endregion
+
+
+        #region Transactions history
 
         /// <summary>
         /// Should start observation of the transactions that transfer fund from the address. 
@@ -203,6 +267,26 @@ namespace Lykke.Service.BlockchainApi.Client
         [Get("/api/transactions/history/to/{address}")]
         Task<IReadOnlyList<HistoricalTransactionContract>> GetHistoryOfIncomingTransactionsAsync(string address, string afterHash, int take);
 
-        #endregion
+        /// <summary>
+        /// Should stop observation of the transactions that transfer fund from the address.
+        /// Should affect result of the <see cref="GetHistoryOfOutgoingTransactionsAsync"/>}.
+        /// 
+        /// Errors:
+        /// - 204 No content: transactions from the address are not observed.
+        /// </summary>
+        [Delete("/api/transactions/history/from/{address}/observation")]
+        Task<bool> StopHistoryObservationOfOutgoingTransactionsAsync(string address);
+
+        /// <summary>
+        /// Should stop observation of the transactions that transfer fund to the address.
+        /// Should affect result of the <see cref="GetHistoryOfIncomingTransactionsAsync"/>}.
+        /// 
+        /// Errors:
+        /// - 204 No content: transactions from the address are not observed.
+        /// </summary>
+        [Delete("/api/transactions/history/to/{address}/observation")]
+        Task<bool> StopHistoryObservationOfIncomingTransactionsAsync(string address);
+
+        #endregion 
     }
 }

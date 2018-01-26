@@ -10,7 +10,6 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
     /// - [PUT] /api/transactions
     ///     Errors:
     ///         - 501 Not Implemented - function is not implemented in the blockchain.
-    ///         - 406 Not Acceptable: transaction can’t be built due to non acceptable amount (too small for example).
     /// </summary>
     /// <remarks>
     /// Service sould rebuild not signed transaction with the specified fee factor, 

@@ -6,10 +6,10 @@ using Lykke.Service.BlockchainApi.Contract.Transactions;
 namespace Lykke.Service.BlockchainApi.Client.Models
 {
     /// <summary>
-    /// Broadcasted transaction
+    /// Base broadcasted transaction
     /// </summary>
     [PublicAPI]
-    public class BroadcastedTransaction 
+    public abstract class BaseBroadcastedTransaction
     {
         /// <summary>
         /// Lykke unique operation ID
@@ -25,12 +25,6 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// Transaction moment in UTC
         /// </summary>
         public DateTime Timestamp { get; }
-
-        /// <summary>
-        /// Amount without fee
-        /// Should be positive number if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
-        /// </summary>
-        public decimal Amount { get; }
 
         /// <summary>
         /// Fee
@@ -50,7 +44,15 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public string Error { get; }
 
-        public BroadcastedTransaction(BroadcastedTransactionResponse contract, int assetAccuracy, Guid expectedOperationId)
+        /// <summary>
+        /// Incremental ID of the moment, when the transaction
+        /// state changing is detected. It should be the same
+        /// sequence as for <see cref="WalletBalance.Nonce"/>. 
+        /// For the most blockchains it could be the block number.
+        /// </summary>
+        public long Nonce { get; }
+
+        protected BaseBroadcastedTransaction(BaseBroadcastedTransactionResponse contract, int assetAccuracy, Guid expectedOperationId)
         {
             if (contract == null)
             {
@@ -80,22 +82,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Hash is required for the completed transaction", contract.Hash);
             }
-
-            if (contract.Amount != null)
+            if (contract.Nonce == 0)
             {
-                try
-                {
-                    Amount = Conversions.CoinsFromContract(contract.Amount, assetAccuracy);
-
-                    if (Amount <= 0)
-                    {
-                        throw new ResultValidationException("Amount should be positive number", contract.Amount);
-                    }
-                }
-                catch (ConversionException ex)
-                {
-                    throw new ResultValidationException("Failed to parse amount", contract.Amount, ex);
-                }
+                throw new ResultValidationException("Nonce is required");
             }
 
             if (contract.Fee != null)
@@ -119,8 +108,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             State = contract.State;
             Timestamp = contract.Timestamp;
             Hash = contract.Hash;
+            Nonce = contract.Nonce;
 
-            if(State == BroadcastedTransactionState.Failed)
+            if (State == BroadcastedTransactionState.Failed)
             {
                 Error = string.IsNullOrWhiteSpace(contract.Error)
                     ? "Blockchain API doesn't specify an error message"

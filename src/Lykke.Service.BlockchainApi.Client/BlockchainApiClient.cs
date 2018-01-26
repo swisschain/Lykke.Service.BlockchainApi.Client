@@ -55,6 +55,14 @@ namespace Lykke.Service.BlockchainApi.Client
             return _runner.RunAsync(() => _api.GetIsAliveAsync());
         }
 
+        /// <inheritdoc />
+        public async Task<BlockchainCapabilities> GetCapabilitiesAsync()
+        {
+            var response = await _runner.RunAsync(() => _api.GetCapabilitiesAsync());
+
+            return new BlockchainCapabilities(response);
+        }
+
         #endregion
 
 
@@ -248,10 +256,10 @@ namespace Lykke.Service.BlockchainApi.Client
         #endregion
 
 
-        #region Transactions
+        #region Transactions building
 
         /// <inheritdoc />
-        public async Task<TransactionBuildingResult> BuildTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee)
+        public async Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateFromAddresIsNotEmpty(fromAddress);
@@ -261,22 +269,81 @@ namespace Lykke.Service.BlockchainApi.Client
 
             BuildTransactionResponse apiResponse;
 
+            apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildSingleTransactionAsync(
+                new BuildSingleTransactionRequest
+                {
+                    OperationId = operationId,
+                    FromAddress = fromAddress,
+                    ToAddress = toAddress,
+                    AssetId = asset.AssetId,
+                    Amount = Conversions.CoinsToContract(amount, asset.Accuracy),
+                    IncludeFee = includeFee
+                }));
+
+            return new TransactionBuildingResult(apiResponse);
+        }
+
+        /// <inheritdoc />
+        public async Task<TransactionBuildingResult> BuildTransactionWithManyInputsAsync(Guid operationId, IEnumerable<TransactionInput> inputs, string toAddress, BlockchainAsset asset)
+        {
+            ValidateOperationIdIsNotEmpty(operationId);
+            // ReSharper disable once PossibleMultipleEnumeration
+            ValidateInputsNotNull(inputs);
+            ValidateToAddressIsNotEmpty(toAddress);
+            ValidateAssetIsNotNull(asset);
+
+            BuildTransactionResponse apiResponse;
+
             try
             {
-                apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildTransactionAsync(
-                    new BuildTransactionRequest
+                apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildTransactionWithManyInputsAsync(
+                    new BuildTransactionWithManyInputsRequest
+                    {
+                        OperationId = operationId,
+                        // ReSharper disable once PossibleMultipleEnumeration
+                        Inputs = inputs
+                            .Select(i => i.ToContract(asset.Accuracy))
+                            .ToArray(),
+                        ToAddress = toAddress,
+                        AssetId = asset.AssetId
+                    }));
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotImplemented)
+            {
+                throw new NotSupportedException("Operation not supported by the blockchain. See GetCapabilitiesAsync", ex);
+            }
+
+            return new TransactionBuildingResult(apiResponse);
+        }
+
+        /// <inheritdoc />
+        public async Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, IEnumerable<TransactionOutput> outputs, BlockchainAsset asset)
+        {
+            ValidateOperationIdIsNotEmpty(operationId);
+            ValidateToAddressIsNotEmpty(fromAddress);
+            // ReSharper disable once PossibleMultipleEnumeration
+            ValidateOutputsNotNull(outputs);
+            ValidateAssetIsNotNull(asset);
+
+            BuildTransactionResponse apiResponse;
+
+            try
+            {
+                apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildTransactionWithManyOutputsAsync(
+                    new BuildTransactionWithManyOutputsRequest
                     {
                         OperationId = operationId,
                         FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        AssetId = asset.AssetId,
-                        Amount = Conversions.CoinsToContract(amount, asset.Accuracy),
-                        IncludeFee = includeFee
+                        // ReSharper disable once PossibleMultipleEnumeration
+                        Outputs = outputs
+                            .Select(o => o.ToContract(asset.Accuracy))
+                            .ToArray(),
+                        AssetId = asset.AssetId
                     }));
             }
-            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotAcceptable)
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotImplemented)
             {
-                throw new NonAcceptableAmountException($"Transaction amount {amount} is non acceptable", ex);
+                throw new NotSupportedException("Operation not supported by the blockchain. See GetCapabilitiesAsync", ex);
             }
 
             return new TransactionBuildingResult(apiResponse);
@@ -301,42 +368,47 @@ namespace Lykke.Service.BlockchainApi.Client
                         FeeFactor = feeFactor
                     }));
             }
-            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotAcceptable)
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotImplemented)
             {
-                throw new NonAcceptableAmountException("Transaction amount is non acceptable", ex);
+                throw new NotSupportedException("Operation not supported by the blockchain. See GetCapabilitiesAsync", ex);
             }
 
             return new TransactionBuildingResult(apiResponse);
         }
 
+        #endregion
+
+
+        #region Transactions broadcasting
+
         /// <inheritdoc />
-        public async Task<bool> BroadcastTransactionAsync(Guid operationId, string signedTransaction)
+        public async Task<TransactionBroadcastingResult> BroadcastTransactionAsync(Guid operationId, string signedTransaction)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateSignedTransactionIsNotEmpty(signedTransaction);
 
             try
             {
-                await _runner.RunWithRetriesAsync(() => _api.BroadcastTransactionAsync(new BroadcastTransactionRequest
+                var response = await _runner.RunWithRetriesAsync(() => _api.BroadcastTransactionAsync(new BroadcastTransactionRequest
                 {
                     OperationId = operationId,
                     SignedTransaction = signedTransaction
                 }));
+
+                return TransactionBroadcastingResultMapper.FromContract(response);
             }
             catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
             {
-                return false;
+                return TransactionBroadcastingResult.AlreadyBroadcasted;
             }
-
-            return true;
         }
 
         /// <inheritdoc />
-        public async Task<BroadcastedTransaction> TryGetBroadcastedTransactionAsync(Guid operationId, BlockchainAsset asset)
+        public async Task<BroadcastedSingleTransaction> TryGetBroadcastedSingleTransactionAsync(Guid operationId, BlockchainAsset asset)
         {
             try
             {
-                return await GetBroadcastedTransactionAsync(operationId, asset);
+                return await GetBroadcastedSingleTransactionAsync(operationId, asset);
             }
             catch (ErrorResponseException ex) when(ex.StatusCode == HttpStatusCode.NoContent)
             {
@@ -344,14 +416,63 @@ namespace Lykke.Service.BlockchainApi.Client
             }
         }
 
-        public async Task<BroadcastedTransaction> GetBroadcastedTransactionAsync(Guid operationId, BlockchainAsset asset)
+        /// <inheritdoc />
+        public async Task<BroadcastedSingleTransaction> GetBroadcastedSingleTransactionAsync(Guid operationId, BlockchainAsset asset)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateAssetIsNotNull(asset);
 
-            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedTransactionAsync(operationId));
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedSingleTransactionAsync(operationId));
 
-            return new BroadcastedTransaction(apiResponse, asset.Accuracy, operationId);
+            return new BroadcastedSingleTransaction(apiResponse, asset.Accuracy, operationId);
+        }
+
+        /// <inheritdoc />
+        public async Task<BroadcastedTransactionWithManyInputs> TryGetBroadcastedTransactionWithManyInputsAsync(Guid operationId, BlockchainAsset asset)
+        {
+            try
+            {
+                return await TryGetBroadcastedTransactionWithManyInputsAsync(operationId, asset);
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
+            {
+                return null;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<BroadcastedTransactionWithManyInputs> GetBroadcastedTransactionWithManyInputsAsync(Guid operationId, BlockchainAsset asset)
+        {
+            ValidateOperationIdIsNotEmpty(operationId);
+            ValidateAssetIsNotNull(asset);
+
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedTransactionWithManyInputsAsync(operationId));
+
+            return new BroadcastedTransactionWithManyInputs(apiResponse, asset.Accuracy, operationId);
+        }
+
+        /// <inheritdoc />
+        public async Task<BroadcastedTransactionWithManyOutputs> TryGetBroadcastedTransactionWithManyOutputsAsync(Guid operationId, BlockchainAsset asset)
+        {
+            try
+            {
+                return await TryGetBroadcastedTransactionWithManyOutputsAsync(operationId, asset);
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
+            {
+                return null;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<BroadcastedTransactionWithManyOutputs> GetBroadcastedTransactionWithManyOutputsAsync(Guid operationId, BlockchainAsset asset)
+        {
+            ValidateOperationIdIsNotEmpty(operationId);
+            ValidateAssetIsNotNull(asset);
+
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.GetBroadcastedTransactionWithManyOutputsAsync(operationId));
+
+            return new BroadcastedTransactionWithManyOutputs(apiResponse, asset.Accuracy, operationId);
         }
 
         /// <inheritdoc />
@@ -371,6 +492,11 @@ namespace Lykke.Service.BlockchainApi.Client
             return true;
         }
 
+        #endregion
+
+
+        #region Transactions history
+        
         /// <inheritdoc />
         public async Task<bool> StartHistoryObservationOfOutgoingTransactionsAsync(string address)
         {
@@ -441,6 +567,40 @@ namespace Lykke.Service.BlockchainApi.Client
             ValidateContractValueIsNotNull(apiResponse);
 
             return apiResponse.Select(t => new HistoricalTransaction(t, assetAccuracyProvider(t.AssetId)));
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> StopHistoryObservationOfOutgoingTransactionsAsync(string address)
+        {
+            ValidateAddressIsNotEmpty(address);
+
+            try
+            {
+                await _runner.RunWithRetriesAsync(() => _api.StopHistoryObservationOfOutgoingTransactionsAsync(address));
+
+                return true;
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> StopHistoryObservationOfIncomingTransactionsAsync(string address)
+        {
+            ValidateAddressIsNotEmpty(address);
+
+            try
+            {
+                await _runner.RunWithRetriesAsync(() => _api.StopHistoryObservationOfIncomingTransactionsAsync(address));
+
+                return true;
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NoContent)
+            {
+                return false;
+            }
         }
 
         #endregion
@@ -601,6 +761,22 @@ namespace Lykke.Service.BlockchainApi.Client
             if (string.IsNullOrWhiteSpace(afterHash))
             {
                 throw new ArgumentException("'After hash' is required", nameof(afterHash));
+            }
+        }
+
+        private static void ValidateInputsNotNull(IEnumerable<TransactionInput> inputs)
+        {
+            if (inputs == null)
+            {
+                throw new ArgumentNullException(nameof(inputs));
+            }
+        }
+
+        private static void ValidateOutputsNotNull(IEnumerable<TransactionOutput> outputs)
+        {
+            if (outputs == null)
+            {
+                throw new ArgumentNullException(nameof(outputs));
             }
         }
 

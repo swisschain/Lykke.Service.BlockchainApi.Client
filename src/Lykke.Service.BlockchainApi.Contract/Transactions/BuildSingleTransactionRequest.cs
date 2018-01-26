@@ -5,10 +5,17 @@ using Newtonsoft.Json;
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
     /// <summary>
-    /// Base request body for the transaction building.
+    /// Transaction building parameters
+    /// Request body for the:
+    /// - [POST] /api/transactions
     /// </summary>
+    /// <remarks>
+    /// Service should build not signed transaction. 
+    /// If transaction with the specified operationId already was built,
+    /// it should be ignored and regular response should be returned
+    /// </remarks>
     [PublicAPI]
-    public abstract class BaseTransactionBuildingRequest
+    public class BuildSingleTransactionRequest
     {
         /// <summary>
         /// Lykke unique operation ID
@@ -45,7 +52,10 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
 
         /// <summary>
         /// Flag, which indicates, that fee should be included
-        /// in the specified amount
+        /// in the specified amount.
+        /// Example: 
+        /// if(includeFee == true) actualAmount = amount
+        /// if(includeFee == false) actualAmount = amount + fee
         /// </summary>
         [JsonProperty("includeFee")]
         public bool IncludeFee { get; set; }

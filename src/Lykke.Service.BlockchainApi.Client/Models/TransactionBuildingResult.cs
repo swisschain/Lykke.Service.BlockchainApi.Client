@@ -10,6 +10,11 @@ namespace Lykke.Service.BlockchainApi.Client.Models
     public class TransactionBuildingResult
     {
         /// <summary>
+        /// Transaction execution error, if any that match one of the predefined code
+        /// </summary>
+        public TransactionExecutionError? Error { get; }
+
+        /// <summary>
         /// The transaction context in the blockchain 
         /// specific format, which should be passed to the
         /// Blockchain.SignService for signing
@@ -22,11 +27,12 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Contract value is required");
             }
-            if (string.IsNullOrWhiteSpace(contract.TransactionContext))
+            if (string.IsNullOrWhiteSpace(contract.TransactionContext) && !Error.HasValue)
             {
-                throw new ResultValidationException("Transaction context is required", contract.TransactionContext);
+                throw new ResultValidationException("Either transaction context or error is required", contract.TransactionContext);
             }
 
+            Error = contract.ErrorCode;
             TransactionContext = contract.TransactionContext;
         }
     }
