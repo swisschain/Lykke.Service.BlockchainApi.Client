@@ -20,14 +20,17 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         public BroadcastedTransactionWithManyInputs(BroadcastedTransactionWithManyInputsResponse contract, int assetAccuracy, Guid expectedOperationId) :
             base(contract, assetAccuracy, expectedOperationId)
         {
-            if (contract.Inputs == null)
+            if (contract.State == BroadcastedTransactionState.Completed && contract.Inputs == null)
             {
-                throw new ResultValidationException("Inputs are required");
+                throw new ResultValidationException("Inputs are required when transaction is completed");
             }
 
-            Inputs = contract.Inputs
-                .Select(i => new TransactionInput(i, assetAccuracy))
-                .ToArray();
+            Inputs = contract.State == BroadcastedTransactionState.Completed
+                ? contract
+                    .Inputs
+                    .Select(i => new TransactionInput(i, assetAccuracy))
+                    .ToArray()
+                : Array.Empty<TransactionInput>();
         }
     }
 }
