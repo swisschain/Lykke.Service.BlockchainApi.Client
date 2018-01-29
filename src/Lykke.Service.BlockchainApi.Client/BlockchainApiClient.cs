@@ -545,7 +545,6 @@ namespace Lykke.Service.BlockchainApi.Client
             Func<string, int> assetAccuracyProvider)
         {
             ValidateAddressIsNotEmpty(address);
-            ValidateAfterHashIsNotEmpty(afterHash);
             ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
@@ -564,7 +563,6 @@ namespace Lykke.Service.BlockchainApi.Client
             Func<string, int> assetAccuracyProvider)
         {
             ValidateAddressIsNotEmpty(address);
-            ValidateAfterHashIsNotEmpty(afterHash);
             ValidateTakeRange(take);
             ValidateAssetAccuracyProviderIsNotNull(assetAccuracyProvider);
 
@@ -759,14 +757,6 @@ namespace Lykke.Service.BlockchainApi.Client
             if (operationIds == null)
             {
                 throw new ArgumentNullException(nameof(operationIds));
-            }
-        }
-
-        private void ValidateAfterHashIsNotEmpty(string afterHash)
-        {
-            if (string.IsNullOrWhiteSpace(afterHash))
-            {
-                throw new ArgumentException("'After hash' is required", nameof(afterHash));
             }
         }
 
