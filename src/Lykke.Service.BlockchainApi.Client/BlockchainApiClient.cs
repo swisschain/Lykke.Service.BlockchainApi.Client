@@ -267,9 +267,7 @@ namespace Lykke.Service.BlockchainApi.Client
             ValidateAssetIsNotNull(asset);
             ValidateAmountRange(amount);
 
-            BuildTransactionResponse apiResponse;
-
-            apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildSingleTransactionAsync(
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildSingleTransactionAsync(
                 new BuildSingleTransactionRequest
                 {
                     OperationId = operationId,
@@ -310,7 +308,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }
             catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotImplemented)
             {
-                throw new NotSupportedException("Operation not supported by the blockchain. See GetCapabilitiesAsync", ex);
+                throw new NotSupportedException("Operation is not supported by the blockchain. See GetCapabilitiesAsync", ex);
             }
 
             return new TransactionBuildingResult(apiResponse);
@@ -343,7 +341,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }
             catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotImplemented)
             {
-                throw new NotSupportedException("Operation not supported by the blockchain. See GetCapabilitiesAsync", ex);
+                throw new NotSupportedException("Operation is not supported by the blockchain. See GetCapabilitiesAsync", ex);
             }
 
             return new TransactionBuildingResult(apiResponse);
@@ -370,7 +368,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }
             catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotImplemented)
             {
-                throw new NotSupportedException("Operation not supported by the blockchain. See GetCapabilitiesAsync", ex);
+                throw new NotSupportedException("Operation is not supported by the blockchain. See GetCapabilitiesAsync", ex);
             }
 
             return new TransactionBuildingResult(apiResponse);
@@ -389,13 +387,17 @@ namespace Lykke.Service.BlockchainApi.Client
 
             try
             {
-                var response = await _runner.RunWithRetriesAsync(() => _api.BroadcastTransactionAsync(new BroadcastTransactionRequest
-                    {
-                        OperationId = operationId,
-                        SignedTransaction = signedTransaction
-                    }));
+                await _runner.RunWithRetriesAsync(() => _api.BroadcastTransactionAsync(new BroadcastTransactionRequest
+                {
+                    OperationId = operationId,
+                    SignedTransaction = signedTransaction
+                }));
 
-                return TransactionBroadcastingResultMapper.FromContract(response);
+                return TransactionBroadcastingResult.Success;
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.BadRequest && ex.ErrorCode != BlockchainErrorCode.Unknown)
+            {
+                return TransactionBroadcastingResultMapper.FromErrorCode(ex.ErrorCode);
             }
             catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
             {
