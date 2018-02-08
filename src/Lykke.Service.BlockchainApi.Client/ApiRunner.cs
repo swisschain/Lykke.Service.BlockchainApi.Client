@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Lykke.Common.Api.Contract.Responses;
+using Lykke.Service.BlockchainApi.Contract;
 using Polly;
 using Refit;
 
@@ -82,20 +82,20 @@ namespace Lykke.Service.BlockchainApi.Client
                 });
         }
 
-        private static ErrorResponse GetErrorResponse(ApiException ex)
+        private static BlockchainErrorResponse GetErrorResponse(ApiException ex)
         {
-            ErrorResponse errorResponse;
+            BlockchainErrorResponse errorResponse;
 
             try
             {
-                errorResponse = ex.GetContentAs<ErrorResponse>();
+                errorResponse = ex.GetContentAs<BlockchainErrorResponse>();
             }
             catch (Exception)
             {
                 errorResponse = null;
             }
 
-            return errorResponse ?? ErrorResponse.Create("Blockchain API is not specify the error response");
+            return errorResponse ?? BlockchainErrorResponse.FromUnknownError("Blockchain API is not specify the error response");
         }
 
         private static bool FilterRetryExceptions(Exception ex)

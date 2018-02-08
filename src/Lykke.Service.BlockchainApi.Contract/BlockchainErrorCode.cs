@@ -1,20 +1,20 @@
 ﻿using JetBrains.Annotations;
 using Newtonsoft.Json;
 
-namespace Lykke.Service.BlockchainApi.Contract.Transactions
+namespace Lykke.Service.BlockchainApi.Contract
 {
     /// <summary>
-    /// Transacction execution error
+    /// Generic error codes
     /// </summary>
     [PublicAPI]
-    public enum TransactionExecutionError
+    public enum BlockchainErrorCode
     {
         /// <summary>
         /// Any error that does not fit another codes
         /// </summary>
         [JsonProperty("unknown")]
         Unknown,
-
+        
         /// <summary>
         /// Amount is too small to execute the transaction
         /// </summary>

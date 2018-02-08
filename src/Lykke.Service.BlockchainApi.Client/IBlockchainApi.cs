@@ -117,6 +117,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should build not signed transaction to transfer from the single source to the single destination.
         /// If the transaction with the specified operationId has already been built by one of the [POST] /api/transactions/* call,
         /// it should be ignored and regular response (as in the first request) should be returned
+        /// 
+        /// Errors:
+        /// - 400 BadRequest: With one of <see cref="BlockchainErrorCode"/> as <see cref="BlockchainErrorResponse.ErrorCode"/>.
         /// </summary>
         [Post("/api/transactions/single")]
         Task<BuildTransactionResponse> BuildSingleTransactionAsync([Body] BuildSingleTransactionRequest body);
@@ -129,6 +132,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// (as in the first request) should be returned. Fee should be included in the specified amount.
         /// 
         /// Errors:
+        /// - 400 BadRequest: With one of <see cref="BlockchainErrorCode"/> as <see cref="BlockchainErrorResponse.ErrorCode"/>.
         /// - 501 Not Implemented - function is not implemented in the blockchain.
         /// </summary>
         [Post("/api/transactions/many-inputs")]
@@ -142,6 +146,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// (as in the first request) should be returned. Fee should be added to the specified amount.
         /// 
         /// Errors:
+        /// - 400 BadRequest: With one of <see cref="BlockchainErrorCode"/> as <see cref="BlockchainErrorResponse.ErrorCode"/>.
         /// - 501 Not Implemented - function is not implemented in the blockchain.
         /// </summary>
         [Post("/api/transactions/many-outputs")]
@@ -159,6 +164,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// parameters that were passed to the [POST] /api/transactions.
         /// 
         /// Errors:
+        /// - 400 BadRequest: With one of <see cref="BlockchainErrorCode"/> as <see cref="BlockchainErrorResponse.ErrorCode"/>.
         /// - 501 Not Implemented - function is not implemented in the blockchain.
         /// </summary>
         [Put("/api/transactions")]
@@ -168,10 +174,11 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should broadcast the signed transaction.
         /// 
         /// Errors:
+        /// - 400 BadRequest: With one of <see cref="BlockchainErrorCode"/> as <see cref="BlockchainErrorResponse.ErrorCode"/>.
         /// - 409 Conflict: transaction with specified operationId and signedTransaction is already broadcasted.
         /// </summary>
         [Post("/api/transactions/broadcast")]
-        Task<BroadcastTransactionResponse> BroadcastTransactionAsync([Body] BroadcastTransactionRequest body);
+        Task BroadcastTransactionAsync([Body] BroadcastTransactionRequest body);
 
         /// <summary>
         /// Should return broadcasted  transaction by the operationId. All transactions with single input and output, 

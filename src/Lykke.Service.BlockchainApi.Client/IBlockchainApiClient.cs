@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Client.Models;
+using Lykke.Service.BlockchainApi.Contract;
 
 namespace Lykke.Service.BlockchainApi.Client
 {
@@ -140,12 +141,19 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <see cref="BuildTransactionWithManyOutputsAsync"/>, 
         /// it should be ignored and regular response should be returned.
         /// </summary>
+        /// 
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="fromAddress">Source address</param>
         /// <param name="toAddress">Destination address</param>
         /// <param name="asset">Blockchain asset to transfer</param>
         /// <param name="amount">Amount to transfer</param>
         /// <param name="includeFee">Flag, which indicates, that fee should be included in the specified amount</param>
+        /// 
+        /// <exception cref="ErrorResponseException">
+        /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
+        /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
+        /// </exception>
         Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee);
 
         /// <summary>
@@ -159,10 +167,17 @@ namespace Lykke.Service.BlockchainApi.Client
         /// it should be ignored and regular response should be returned.
         /// Fee should be included in the specified amount.
         /// </summary>
+        /// 
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="inputs">Sources</param>
         /// <param name="toAddress">Destination address</param>
         /// <param name="asset">Blockchain asset to transfer</param>
+        /// 
+        /// <exception cref="ErrorResponseException">
+        /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
+        /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
+        /// </exception>
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
         /// </exception>
@@ -179,11 +194,17 @@ namespace Lykke.Service.BlockchainApi.Client
         /// it should be ignored and regular response should be returned.
         /// Fee should be added to the specified amount.
         /// </summary>
+        /// 
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="fromAddress">Destination address</param>
         /// <param name="outputs">Destinations</param>
         /// <param name="asset">Blockchain asset to transfer</param>
-        /// ///
+        /// 
+        /// <exception cref="ErrorResponseException">
+        /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
+        /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
+        /// </exception>
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
         /// </exception>
@@ -201,9 +222,16 @@ namespace Lykke.Service.BlockchainApi.Client
         /// the same <paramref name="operationId"/> should precede to the given call. 
         /// Transaction should be rebuilt with parameters that were passed to the <see cref="BuildSingleTransactionAsync"/>.
         /// </summary>
+        /// 
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="feeFactor">Multiplier for the transaction fee. Blockchain will multiply regular fee by this factor</param>
-        /// /// <exception cref="NotSupportedException">
+        /// 
+        /// <exception cref="ErrorResponseException">
+        /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
+        /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
+        /// </exception>
+        /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
         /// </exception>
         Task<TransactionBuildingResult> RebuildTransactionAsync(Guid operationId, decimal feeFactor);
@@ -221,10 +249,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="signedTransaction">The signed transaction returned by the Blockchain.SignService after signing</param>
-        /// <returns>
-        /// true - if transaction is broadcasted. false - if transaction with given <paramref name="operationId"/> 
-        /// and <paramref name="signedTransaction"/> was already broadcasted
-        /// </returns>
+        /// <returns>Transaction broadcasting result </returns>
         Task<TransactionBroadcastingResult> BroadcastTransactionAsync(Guid operationId, string signedTransaction);
 
         /// <summary>

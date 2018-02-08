@@ -1,32 +1,24 @@
-﻿using Lykke.Service.BlockchainApi.Contract.Transactions;
+﻿using System.Diagnostics.CodeAnalysis;
+using Lykke.Service.BlockchainApi.Contract;
 
 namespace Lykke.Service.BlockchainApi.Client.Models
 {
     internal static class TransactionBroadcastingResultMapper
     {
-        public static TransactionBroadcastingResult FromContract(BroadcastTransactionResponse response)
+        [SuppressMessage("ReSharper", "RedundantCaseLabel")]
+        public static TransactionBroadcastingResult FromErrorCode(BlockchainErrorCode errorCode)
         {
-            if (response == null)
+            switch (errorCode)
             {
-                throw new ResultValidationException("Contract response is required");
-            }
-
-            switch (response.ErrorCode)
-            {
-                case null:
-                    return TransactionBroadcastingResult.Success;
-
-                case TransactionExecutionError.Unknown:
-                    throw new ResultValidationException("Error code is not allowed", response.ErrorCode);
-
-                case TransactionExecutionError.AmountIsTooSmall:
+                case BlockchainErrorCode.AmountIsTooSmall:
                     return TransactionBroadcastingResult.AmountIsTooSmall;
                     
-                case TransactionExecutionError.NotEnoughtBalance:
+                case BlockchainErrorCode.NotEnoughtBalance:
                     return TransactionBroadcastingResult.NotEnoughBalance;
 
+                case BlockchainErrorCode.Unknown:
                 default:
-                    throw new ResultValidationException("Unknown error code", response.ErrorCode);
+                    throw new ResultValidationException("Invalid error code", errorCode);
             }
         }
     }

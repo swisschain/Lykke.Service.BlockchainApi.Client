@@ -60,7 +60,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Failed"/>
         /// </summary>
         [JsonProperty("errorCode")]
-        public TransactionExecutionError? ErrorCode { get; set; }
+        public BlockchainErrorCode? ErrorCode { get; set; }
 
         /// <summary>
         /// Incremental ID of the moment, when the transaction
