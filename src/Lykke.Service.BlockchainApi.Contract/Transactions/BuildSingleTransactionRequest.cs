@@ -30,6 +30,15 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         public string FromAddress { get; set; }
 
         /// <summary>
+        /// Any non security sensitive data associated with
+        /// source wallet, that were returned by the
+        /// Blockchain.SignService [POST] /api/wallets.
+        /// Can be empty.
+        /// </summary>
+        [JsonProperty("fromAddressContext")]
+        public string FromAddressContext { get; set; }
+
+        /// <summary>
         /// Destination address
         /// </summary>
         [JsonProperty("toAddress")]
