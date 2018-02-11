@@ -28,6 +28,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }
         }
 
+        // ReSharper disable once MemberCanBeMadeStatic.Global
         public async Task<T> RunAsync<T>(Func<Task<T>> method)
         {
             try

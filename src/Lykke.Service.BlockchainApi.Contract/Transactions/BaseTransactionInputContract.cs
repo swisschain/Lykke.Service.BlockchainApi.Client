@@ -1,23 +1,19 @@
-﻿using Newtonsoft.Json;
+﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
 
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
-    public class TransactionInputContract
+    /// <summary>
+    /// Base class for transaction input
+    /// </summary>
+    [PublicAPI]
+    public abstract class BaseTransactionInputContract
     {
         /// <summary>
         /// Source address
         /// </summary>
         [JsonProperty("fromAddress")]
         public string FromAddress { get; set; }
-
-        /// <summary>
-        /// Any non security sensitive data associated with
-        /// source wallet, that were returned by the
-        /// Blockchain.SignService [POST] /api/wallets.
-        /// Can be empty.
-        /// </summary>
-        [JsonProperty("fromAddressContext")]
-        public string FromAddressContext { get; set; }
 
         /// <summary>
         /// Amount to transfer from the <see cref="FromAddress"/> or actual amount, 
