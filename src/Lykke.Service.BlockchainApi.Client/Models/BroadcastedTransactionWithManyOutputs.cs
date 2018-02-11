@@ -15,7 +15,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// <summary>
         /// Sources
         /// </summary>
-        public IReadOnlyList<TransactionOutput> Outputs { get; }
+        public IReadOnlyList<BroadcastedTransactionOutput> Outputs { get; }
 
         public BroadcastedTransactionWithManyOutputs(BroadcastedTransactionWithManyOutputsResponse contract, int assetAccuracy, Guid expectedOperationId) :
             base(contract, assetAccuracy, expectedOperationId)
@@ -28,9 +28,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             Outputs = contract.State == BroadcastedTransactionState.Completed
                 ? contract
                     .Outputs
-                    .Select(o => new TransactionOutput(o, assetAccuracy))
+                    .Select(o => new BroadcastedTransactionOutput(o, assetAccuracy))
                     .ToArray()
-                : Array.Empty<TransactionOutput>();
+                : Array.Empty<BroadcastedTransactionOutput>();
         }
     }
 }

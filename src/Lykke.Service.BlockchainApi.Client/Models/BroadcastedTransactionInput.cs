@@ -1,15 +1,14 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 
 namespace Lykke.Service.BlockchainApi.Client.Models
 {
     /// <summary>
-    /// Transaction input
+    /// Broadcasted transaction input
     /// </summary>
     [PublicAPI]
-    public class TransactionInput
+    public class BroadcastedTransactionInput
     {
         /// <summary>
         /// Source address
@@ -25,25 +24,8 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// <summary>
         /// Transaction input
         /// </summary>
-        public TransactionInput(string fromAddress, decimal amount)
-        {
-            if (string.IsNullOrWhiteSpace(FromAddress))
-            {
-                throw new ArgumentException(nameof(fromAddress), "Source address is required");
-            }
-            if (amount <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(amount), amount, "Amount should be positive number");
-            }
-
-            FromAddress = fromAddress;
-            Amount = amount;
-        }
-
-        /// <summary>
-        /// Transaction input
-        /// </summary>
-        public TransactionInput(TransactionInputContract contract, int assetAccuracy)
+        // ReSharper disable once SuggestBaseTypeForParameter
+        public BroadcastedTransactionInput(BroadcastedTransactionInputContract contract, int assetAccuracy)
         {
             if (contract == null)
             {
@@ -54,7 +36,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
                 throw new ResultValidationException("Source address is required", contract.FromAddress);
             }
 
-            FromAddress = FromAddress;
+            FromAddress = contract.FromAddress;
 
             try
             {
@@ -69,18 +51,6 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Failed to parse amount", contract.Amount, ex);
             }
-        }
-
-        /// <summary>
-        /// Converts transaction input to the contract DTO
-        /// </summary>
-        public TransactionInputContract ToContract(int assetAccuracy)
-        {
-            return new TransactionInputContract
-            {
-                FromAddress = FromAddress,
-                Amount = Conversions.CoinsToContract(Amount, assetAccuracy)
-            };
         }
     }
 }

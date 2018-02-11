@@ -46,7 +46,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// Destinations
         /// </summary>
         [JsonProperty("outputs")]
-        public IReadOnlyList<TransactionOutputContract> Outputs { get; set; }
+        public IReadOnlyList<BuildingTransactionOutputContract> Outputs { get; set; }
 
         /// <summary>
         /// Asset ID to transfer

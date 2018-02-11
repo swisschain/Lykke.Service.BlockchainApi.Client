@@ -1,8 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
 
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
-    public class TransactionOutputContract
+    /// <summary>
+    /// Base class for transaction output
+    /// </summary>
+    [PublicAPI]
+    public abstract class BaseTransactionOutputContract
     {
         /// <summary>
         /// Destination address

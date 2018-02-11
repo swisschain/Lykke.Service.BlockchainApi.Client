@@ -31,7 +31,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// Sources
         /// </summary>
         [JsonProperty("inputs")]
-        public IReadOnlyList<TransactionInputContract> Inputs { get; set; }
+        public IReadOnlyList<BuildingTransactionInputContract> Inputs { get; set; }
 
         /// <summary>
         /// Destination address

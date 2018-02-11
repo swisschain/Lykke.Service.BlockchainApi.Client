@@ -144,6 +144,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// 
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="fromAddress">Source address</param>
+        /// <param name="fromAddressContext">Source address context taken from the blockchain sign service</param>
         /// <param name="toAddress">Destination address</param>
         /// <param name="asset">Blockchain asset to transfer</param>
         /// <param name="amount">Amount to transfer</param>
@@ -154,7 +155,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
         /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
         /// </exception>
-        Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee);
+        Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string fromAddressContext, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee);
 
         /// <summary>
         /// Optional method. <see cref="GetCapabilitiesAsync"/>
@@ -181,7 +182,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
         /// </exception>
-        Task<TransactionBuildingResult> BuildTransactionWithManyInputsAsync(Guid operationId, IEnumerable<TransactionInput> inputs, string toAddress, BlockchainAsset asset);
+        Task<TransactionBuildingResult> BuildTransactionWithManyInputsAsync(Guid operationId, IEnumerable<BuildingTransactionInput> inputs, string toAddress, BlockchainAsset asset);
 
         /// <summary>
         /// Optional method. <see cref="GetCapabilitiesAsync"/>
@@ -208,7 +209,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
         /// </exception>
-        Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, IEnumerable<TransactionOutput> outputs, BlockchainAsset asset);
+        Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, IEnumerable<BuildingTransactionOutput> outputs, BlockchainAsset asset);
 
 
         /// <summary>

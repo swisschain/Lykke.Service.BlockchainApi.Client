@@ -259,7 +259,7 @@ namespace Lykke.Service.BlockchainApi.Client
         #region Transactions building
 
         /// <inheritdoc />
-        public async Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee)
+        public async Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string fromAddressContext, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateFromAddresIsNotEmpty(fromAddress);
@@ -282,7 +282,7 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<TransactionBuildingResult> BuildTransactionWithManyInputsAsync(Guid operationId, IEnumerable<TransactionInput> inputs, string toAddress, BlockchainAsset asset)
+        public async Task<TransactionBuildingResult> BuildTransactionWithManyInputsAsync(Guid operationId, IEnumerable<BuildingTransactionInput> inputs, string toAddress, BlockchainAsset asset)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             // ReSharper disable once PossibleMultipleEnumeration
@@ -315,7 +315,7 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, IEnumerable<TransactionOutput> outputs, BlockchainAsset asset)
+        public async Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, IEnumerable<BuildingTransactionOutput> outputs, BlockchainAsset asset)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateToAddressIsNotEmpty(fromAddress);
@@ -762,7 +762,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }
         }
 
-        private static void ValidateInputsNotNull(IEnumerable<TransactionInput> inputs)
+        private static void ValidateInputsNotNull(IEnumerable<BuildingTransactionInput> inputs)
         {
             if (inputs == null)
             {
@@ -770,7 +770,7 @@ namespace Lykke.Service.BlockchainApi.Client
             }
         }
 
-        private static void ValidateOutputsNotNull(IEnumerable<TransactionOutput> outputs)
+        private static void ValidateOutputsNotNull(IEnumerable<BuildingTransactionOutput> outputs)
         {
             if (outputs == null)
             {
