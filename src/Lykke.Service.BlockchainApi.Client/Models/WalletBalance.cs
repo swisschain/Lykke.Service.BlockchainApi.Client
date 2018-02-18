@@ -46,14 +46,15 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Asset ID is required", contract.AssetId);
             }
-            if (Block == 0)
+            if (contract.Block == 0)
             {
                 throw new ResultValidationException("Block is required", contract.Block);
             }
 
             Address = contract.Address;
             AssetId = contract.AssetId;
-            
+            Block = contract.Block;
+
             try
             {
                 Balance = Conversions.CoinsFromContract(contract.Balance, assetAccuracy);
@@ -67,8 +68,6 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Failed to parse balance", contract.Balance, ex);
             }
-
-            Block = Block;
         }
     }
 }
