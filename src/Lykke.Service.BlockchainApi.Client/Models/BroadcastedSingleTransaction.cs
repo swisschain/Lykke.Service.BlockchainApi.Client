@@ -20,7 +20,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         public BroadcastedSingleTransaction(BroadcastedSingleTransactionResponse contract, int assetAccuracy, Guid expectedOperationId) :
             base(contract, assetAccuracy, expectedOperationId)
         {
-            if (contract.Amount != null)
+            if (!string.IsNullOrEmpty(contract.Amount))
             {
                 try
                 {

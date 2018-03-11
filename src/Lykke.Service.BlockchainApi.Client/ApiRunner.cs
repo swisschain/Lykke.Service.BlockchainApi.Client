@@ -106,7 +106,8 @@ namespace Lykke.Service.BlockchainApi.Client
                 return innerApiException.StatusCode == HttpStatusCode.InternalServerError ||
                         innerApiException.StatusCode == HttpStatusCode.BadGateway ||
                         innerApiException.StatusCode == HttpStatusCode.ServiceUnavailable ||
-                        innerApiException.StatusCode == HttpStatusCode.GatewayTimeout;
+                        innerApiException.StatusCode == HttpStatusCode.GatewayTimeout ||
+                        innerApiException.StatusCode == HttpStatusCode.RequestTimeout;
             }
 
             if (ex is ApiException apiException)
@@ -114,7 +115,8 @@ namespace Lykke.Service.BlockchainApi.Client
                 return apiException.StatusCode == HttpStatusCode.InternalServerError ||
                        apiException.StatusCode == HttpStatusCode.BadGateway ||
                        apiException.StatusCode == HttpStatusCode.ServiceUnavailable ||
-                       apiException.StatusCode == HttpStatusCode.GatewayTimeout;
+                       apiException.StatusCode == HttpStatusCode.GatewayTimeout ||
+                       apiException.StatusCode == HttpStatusCode.RequestTimeout;
             }
 
             return true;
