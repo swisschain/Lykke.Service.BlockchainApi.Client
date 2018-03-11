@@ -87,7 +87,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
                 throw new ResultValidationException("Block is required", contract.Block);
             }
 
-            if (contract.Fee != null)
+            if (!string.IsNullOrEmpty(contract.Fee))
             {
                 try
                 {
