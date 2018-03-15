@@ -82,9 +82,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Hash is required for the completed transaction", contract.Hash);
             }
-            if (contract.Block == 0)
+            if (contract.State == BroadcastedTransactionState.Completed && contract.Block == 0)
             {
-                throw new ResultValidationException("Block is required", contract.Block);
+                throw new ResultValidationException("Block is required for the completed transaction", contract.Block);
             }
 
             if (!string.IsNullOrEmpty(contract.Fee))
