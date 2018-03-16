@@ -22,7 +22,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Common
         /// [GET] /api/transactions/broadcasted/many-inputs calls
         /// are supported
         /// </summary>
-        [JsonProperty("areMultipleInputsSupported")]
+        [JsonProperty("areManyInputsSupported")]
         public bool AreManyInputsSupported { get; set; }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Common
         /// [GET] /api/transactions/broadcasted/many-outputs calls
         /// are supported
         /// </summary>
-        [JsonProperty("areMultipleOutputsSupported")]
+        [JsonProperty("areManyOutputsSupported")]
         public bool AreManyOutputsSupported { get; set; }
 
     }
