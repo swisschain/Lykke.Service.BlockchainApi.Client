@@ -1,21 +1,19 @@
 ﻿using System;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Lykke.Service.BlockchainApi.Contract.Common;
 
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
     /// <summary>
-    /// Historical transaction contract
+    /// Historical transaction contract.
+    /// Response for the:
+    ///     [get] /api/transactions/history/from/{address}
+    ///     [get] /api/transactions/history/to/{address}
     /// </summary>
     [PublicAPI]
     public class HistoricalTransactionContract
     {
-        /// <summary>
-        /// Lykke unique operation ID
-        /// </summary>
-        [JsonProperty("operationId")]
-        public Guid OperationId { get; set; }
-
         /// <summary>
         /// Transaction moment as ISO 8601 in UTC
         /// </summary>
@@ -54,5 +52,15 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// </summary>
         [JsonProperty("hash")]
         public string Hash { get; set; }
+
+        /// <summary>
+        /// Type of the transaction.
+        /// Can be empty.
+        /// Should be non empty if the flag
+        /// <see cref="CapabilitiesResponse.IsReceiveTransactionRequired"/> is true
+        /// </summary>
+        [CanBeNull]
+        [JsonProperty("transactionType ")]
+        public TransactionType? TransactionType { get; set; }
     }
 }
