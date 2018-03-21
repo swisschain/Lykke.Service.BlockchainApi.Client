@@ -22,8 +22,8 @@ namespace Lykke.Service.BlockchainApi.Contract.Assets
         /// asset in the blockchain, if applicable for the given blockchain.
         /// Can be empty.
         /// </summary>
-        [JsonProperty("address")]
         [CanBeNull]
+        [JsonProperty("address")]
         public string Address { get; set; }
 
         /// <summary>

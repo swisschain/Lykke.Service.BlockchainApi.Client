@@ -36,6 +36,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// and can be read using <see cref="Conversions.CoinsFromContract"/>
         /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
+        [CanBeNull]
         [JsonProperty("fee")]
         public string Fee { get; set; }
 
@@ -44,6 +45,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// Can be empty.
         /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
+        [CanBeNull]
         [JsonProperty("hash")]
         public string Hash { get; set; }
 
@@ -52,6 +54,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// Can be empty.
         /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Failed"/>
         /// </summary>
+        [CanBeNull]
         [JsonProperty("error")]
         public string Error { get; set; }
 
@@ -59,6 +62,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// Error code.
         /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Failed"/>
         /// </summary>
+        [CanBeNull]
         [JsonProperty("errorCode")]
         public BlockchainErrorCode? ErrorCode { get; set; }
 
