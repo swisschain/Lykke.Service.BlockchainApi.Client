@@ -9,6 +9,7 @@ using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Client.Models;
 using Lykke.Service.BlockchainApi.Contract;
+using Lykke.Service.BlockchainApi.Contract.Common;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Microsoft.Extensions.PlatformAbstractions;
 using Refit;
@@ -61,6 +62,21 @@ namespace Lykke.Service.BlockchainApi.Client
             var response = await _runner.RunAsync(() => _api.GetCapabilitiesAsync());
 
             return new BlockchainCapabilities(response);
+        }
+
+        /// <inheritdoc />
+        public async Task<BlockchainConstants> GetConstantsAsync()
+        {
+            try
+            {
+                var response = await _runner.RunAsync(() => _api.GetConstantsAsync());
+
+                return new BlockchainConstants(response);
+            }
+            catch (ErrorResponseException ex) when (ex.StatusCode == HttpStatusCode.NotImplemented || ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new BlockchainConstants(new ConstantsResponse());
+            }
         }
 
         #endregion
@@ -190,6 +206,20 @@ namespace Lykke.Service.BlockchainApi.Client
             return (await _runner.RunWithRetriesAsync(() => _api.IsAddressValidAsync(address))).IsValid;
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyList<Uri>> GetAddressExplorerUrlAsync(string address)
+        {
+            ValidateAddressIsNotEmpty(address);
+
+            var result = await _runner.RunWithRetriesAsync(() => _api.GetAddressExplorerUrlsAsync(address));
+
+            return result != null
+                ? result
+                    .Select(u => new Uri(u))
+                    .ToArray()
+                : Array.Empty<Uri>();
+        }
+
         #endregion
 
 
@@ -272,10 +302,27 @@ namespace Lykke.Service.BlockchainApi.Client
                 {
                     OperationId = operationId,
                     FromAddress = fromAddress,
+                    FromAddressContext = fromAddressContext,
                     ToAddress = toAddress,
                     AssetId = asset.AssetId,
                     Amount = Conversions.CoinsToContract(amount, asset.Accuracy),
                     IncludeFee = includeFee
+                }));
+
+            return new TransactionBuildingResult(apiResponse);
+        }
+
+        /// <inheritdoc />
+        public async Task<TransactionBuildingResult> BuildSingleReceiveTransactionAsync(Guid operationId, string sendTransactionHash)
+        {
+            ValidateOperationIdIsNotEmpty(operationId);
+            ValidateSendTransactionHashIsNotEmpty(sendTransactionHash);
+
+            var apiResponse = await _runner.RunWithRetriesAsync(() => _api.BuildSingleReceiveTransactionAsync(
+                new BuildSingleReceiveTransactionRequest
+                {
+                    OperationId = operationId,
+                    SendTransactionHash = sendTransactionHash
                 }));
 
             return new TransactionBuildingResult(apiResponse);
@@ -315,7 +362,7 @@ namespace Lykke.Service.BlockchainApi.Client
         }
 
         /// <inheritdoc />
-        public async Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, IEnumerable<BuildingTransactionOutput> outputs, BlockchainAsset asset)
+        public async Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, string fromAddressContext, IEnumerable<BuildingTransactionOutput> outputs, BlockchainAsset asset)
         {
             ValidateOperationIdIsNotEmpty(operationId);
             ValidateToAddressIsNotEmpty(fromAddress);
@@ -332,6 +379,7 @@ namespace Lykke.Service.BlockchainApi.Client
                     {
                         OperationId = operationId,
                         FromAddress = fromAddress,
+                        FromAddressContext = fromAddressContext,
                         // ReSharper disable once PossibleMultipleEnumeration
                         Outputs = outputs
                             .Select(o => o.ToContract(asset.Accuracy))
@@ -727,6 +775,14 @@ namespace Lykke.Service.BlockchainApi.Client
             if (string.IsNullOrWhiteSpace(fromAddress))
             {
                 throw new ArgumentException("Source address is required", nameof(fromAddress));
+            }
+        }
+
+        private static void ValidateSendTransactionHashIsNotEmpty(string sendTransactionHash)
+        {
+            if (string.IsNullOrWhiteSpace(sendTransactionHash))
+            {
+                throw new ArgumentException("Send transaction hash is required", nameof(sendTransactionHash));
             }
         }
 

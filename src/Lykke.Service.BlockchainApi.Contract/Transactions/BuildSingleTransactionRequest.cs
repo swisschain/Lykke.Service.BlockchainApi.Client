@@ -10,9 +10,11 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
     /// - [POST] /api/transactions
     /// </summary>
     /// <remarks>
-    /// Service should build not signed transaction. 
-    /// If transaction with the specified operationId already was built,
-    /// it should be ignored and regular response should be returned
+    /// Should build not signed transaction to transfer from the single source to the single destination. 
+    /// If the transaction with the specified operationId has already been built by one of the 
+    /// [POST] /api/transactions/* call, it should be ignored and regular response (as in the first request) 
+    /// should be returned. For the blockchains where “send” and “receive” transactions are distinguished, 
+    /// this endpoint builds “send” transactions.
     /// </remarks>
     [PublicAPI]
     public class BuildSingleTransactionRequest

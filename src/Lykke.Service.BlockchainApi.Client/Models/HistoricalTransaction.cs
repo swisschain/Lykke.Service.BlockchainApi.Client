@@ -9,11 +9,6 @@ namespace Lykke.Service.BlockchainApi.Client.Models
     public class HistoricalTransaction
     {
         /// <summary>
-        /// Lykke unique operation ID
-        /// </summary>
-        public Guid OperationId { get; }
-
-        /// <summary>
         /// Transaction moment in UTC
         /// </summary>
         public DateTime Timestamp { get; }
@@ -43,15 +38,20 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public string Hash { get; }
 
+        /// <summary>
+        /// Type of the transaction.
+        /// Can be empty.
+        /// Should be non empty if the flag
+        /// <see cref="BlockchainCapabilities.IsReceiveTransactionRequired"/> is true
+        /// </summary>
+        [CanBeNull]
+        public TransactionType? TransactionType { get; }
+
         public HistoricalTransaction(HistoricalTransactionContract contract, int assetAccuracy)
         {
             if (contract == null)
             {
                 throw new ResultValidationException("Transaction not found");
-            }
-            if (contract.OperationId == Guid.Empty)
-            {
-                throw new ResultValidationException("Operation ID is required", contract.OperationId);
             }
             if (contract.Timestamp == DateTime.MinValue)
             {
@@ -77,7 +77,11 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Hash is required", contract.Hash);
             }
-
+            if (contract.TransactionType.HasValue && !Enum.IsDefined(typeof(TransactionType), contract.TransactionType))
+            {
+                throw new ResultValidationException("Unknown transaction type", contract.TransactionType);
+            }
+            
             try
             {
                 Amount = Conversions.CoinsFromContract(contract.Amount, assetAccuracy);
@@ -92,12 +96,12 @@ namespace Lykke.Service.BlockchainApi.Client.Models
                 throw new ResultValidationException("Failed to parse amount", contract.Amount, ex);
             }
 
-            OperationId = contract.OperationId;
             Timestamp = contract.Timestamp;
             FromAddress = contract.FromAddress;
             ToAddress = contract.ToAddress;
             AssetId = contract.AssetId;
             Hash = contract.Hash;
+            TransactionType = contract.TransactionType;
         }
     }
 }

@@ -24,9 +24,13 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <summary>
         /// Should return blockchain API capabilities.
         /// </summary>
-        /// <returns></returns>
         Task<BlockchainCapabilities> GetCapabilitiesAsync();
 
+        /// <summary>
+        /// Should return blockchain API constants.
+        /// </summary>
+        Task<BlockchainConstants> GetConstantsAsync();
+        
         #endregion
 
 
@@ -92,6 +96,14 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="address">Wallet address</param>
         Task<bool> IsAddressValidAsync(string address);
 
+        /// <summary>
+        /// Optional method. <see cref="GetCapabilitiesAsync"/>.
+        /// 
+        /// Should return one or many blockchain explorer URLs for the given address.
+        /// </summary>
+        /// <param name="address">Wallet address</param>
+        Task<IReadOnlyList<Uri>> GetAddressExplorerUrlAsync(string address);
+
         #endregion
 
 
@@ -134,12 +146,13 @@ namespace Lykke.Service.BlockchainApi.Client
         #region Transactions building
 
         /// <summary>
-        /// Should build not signed transaction to transfer from the single source to the single destination. If transaction with the specified 
-        /// <paramref name="operationId"/> already was built by one of the
+        /// Should build not signed transaction to transfer from the single source to the single destination. If the transaction with the specified 
+        /// <paramref name="operationId"/> has already been built by one of the
         /// <see cref="BuildSingleTransactionAsync"/>,
         /// <see cref="BuildTransactionWithManyInputsAsync"/> or
         /// <see cref="BuildTransactionWithManyOutputsAsync"/>, 
-        /// it should be ignored and regular response should be returned.
+        /// call, it should be ignored and regular response (as in the first request) should be returned.
+        /// For the blockchains where “send” and “receive” transactions are distinguished, this endpoint builds “send” transactions.
         /// </summary>
         /// 
         /// <param name="operationId">Lykke unique operation ID</param>
@@ -156,6 +169,17 @@ namespace Lykke.Service.BlockchainApi.Client
         /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
         /// </exception>
         Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string fromAddressContext, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee);
+
+        /// <summary>
+        /// Optional method. <see cref="GetCapabilitiesAsync"/>
+        ///  
+        /// Should build not signed receive transaction to receive funds transfered by the send transaction from the single source to the single destination. 
+        /// If transaction with the specified <paramref name="operationId"/> already was built by the
+        /// <see cref="BuildSingleReceiveTransactionAsync"/> it should be ignored and regular response should be returned.
+        /// </summary>
+        /// <param name="operationId">Lykke unique operation ID</param>
+        /// <param name="sendTransactionHash">Hash of the send transaction, which should be received</param>
+        Task<TransactionBuildingResult> BuildSingleReceiveTransactionAsync(Guid operationId, string sendTransactionHash);
 
         /// <summary>
         /// Optional method. <see cref="GetCapabilitiesAsync"/>
@@ -186,7 +210,6 @@ namespace Lykke.Service.BlockchainApi.Client
 
         /// <summary>
         /// Optional method. <see cref="GetCapabilitiesAsync"/>
-        /// 
         /// Should build not signed transaction to transfer from the single source to the single destination. If transaction with the specified 
         /// <paramref name="operationId"/> already was built by one of the
         /// <see cref="BuildSingleTransactionAsync"/>,
@@ -195,12 +218,11 @@ namespace Lykke.Service.BlockchainApi.Client
         /// it should be ignored and regular response should be returned.
         /// Fee should be added to the specified amount.
         /// </summary>
-        /// 
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="fromAddress">Destination address</param>
+        /// <param name="fromAddressContext">context taken from the blockchain sign service</param>
         /// <param name="outputs">Destinations</param>
         /// <param name="asset">Blockchain asset to transfer</param>
-        /// 
         /// <exception cref="ErrorResponseException">
         /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
         /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
@@ -209,7 +231,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
         /// </exception>
-        Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, IEnumerable<BuildingTransactionOutput> outputs, BlockchainAsset asset);
+        Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, string fromAddressContext, IEnumerable<BuildingTransactionOutput> outputs, BlockchainAsset asset);
 
 
         /// <summary>
