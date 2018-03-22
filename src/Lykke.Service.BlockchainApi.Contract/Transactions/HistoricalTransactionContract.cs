@@ -60,7 +60,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// <see cref="CapabilitiesResponse.IsReceiveTransactionRequired"/> is true
         /// </summary>
         [CanBeNull]
-        [JsonProperty("transactionType ")]
+        [JsonProperty("transactionType")]
         public TransactionType? TransactionType { get; set; }
     }
 }
