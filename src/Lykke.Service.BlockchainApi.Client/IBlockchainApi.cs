@@ -23,10 +23,24 @@ namespace Lykke.Service.BlockchainApi.Client
         Task<IsAliveResponse> GetIsAliveAsync();
 
         /// <summary>
-        /// Should return API capabilities set
+        /// Should return API capabilities set. Each optional operation has corresponding flag in the capabilities. 
+        /// Optional operations should be implemented if particular blockchain provides such functionality. 
+        /// Any field in response of this endpoint can be empty, this should be treated as false value.
         /// </summary>
         [Get("/api/capabilities")]
         Task<CapabilitiesResponse> GetCapabilitiesAsync();
+
+        /// <summary>
+        /// Optional.
+        /// 
+        /// This endpoint should return blockchain integration constants if any are supported.
+        /// If no constants are supported, this method can be not implemented.
+        /// 
+        /// Errors:
+        /// - 501 Not Implemented - function is not implemented in the blockchain.
+        /// </summary>
+        [Get("/api/constants")]
+        Task<ConstantsResponse> GetConstantsAsync();
 
         #endregion
 
@@ -66,6 +80,18 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="address">Wallet address</param>
         [Get("/api/addresses/{address}/validity")]
         Task<AddressValidationResponse> IsAddressValidAsync(string address);
+
+        /// <summary>
+        /// Optional. See <see cref="GetCapabilitiesAsync"/>
+        /// 
+        /// Should return one or many blockchain explorer URLs for the given address.
+        /// 
+        /// Errors:
+        /// - 501 Not Implemented - function is not implemented in the blockchain.
+        /// </summary>
+        /// <param name="address">Wallet address</param>
+        [Get("/api/addresses/{address}/explorer-url")]
+        Task<string[]> GetAddressExplorerUrlsAsync(string address);
 
         #endregion
 
@@ -116,13 +142,29 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <summary>
         /// Should build not signed transaction to transfer from the single source to the single destination.
         /// If the transaction with the specified operationId has already been built by one of the [POST] /api/transactions/* call,
-        /// it should be ignored and regular response (as in the first request) should be returned
+        /// it should be ignored and regular response (as in the first request) should be returned. For the blockchains where “send” and “receive” 
+        /// transactions are distinguished, this endpoint builds “send” transactions.
         /// 
         /// Errors:
         /// - 400 BadRequest: With one of <see cref="BlockchainErrorCode"/> as <see cref="BlockchainErrorResponse.ErrorCode"/>.
         /// </summary>
         [Post("/api/transactions/single")]
         Task<BuildTransactionResponse> BuildSingleTransactionAsync([Body] BuildSingleTransactionRequest body);
+
+        /// <summary>
+        /// Optional. See <see cref="GetCapabilitiesAsync"/>
+        /// Should build not signed “receive” transaction to receive funds previously sent 
+        /// from the single source to the single destination. If the receive transaction with 
+        /// the specified operationId has already been built by the [POST] /api/transactions/single/receive call,
+        ///  it should be ignored and regular response (as in the first request) should be returned. 
+        /// This endpoint should be implemented by the blockchains, which distinguishes “send” and “receive” 
+        /// transactions and “receive” transaction requires the same private key as the “send”.
+        /// 
+        /// Errors:
+        /// - 501 Not Implemented - function is not implemented in the blockchain.
+        /// </summary>
+        [Post("/api/transactions/single/receive")]
+        Task<BuildTransactionResponse> BuildSingleReceiveTransactionAsync([Body] BuildSingleReceiveTransactionRequest body);
 
         /// <summary>
         /// Optional. See <see cref="GetCapabilitiesAsync"/>
