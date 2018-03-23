@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Lykke.Service.BlockchainApi.Contract
 {
@@ -20,6 +21,7 @@ namespace Lykke.Service.BlockchainApi.Contract
         /// </summary>
         [CanBeNull]
         [JsonProperty("contractVersion")]
+        [JsonConverter(typeof(VersionConverter))]
         public Version ContractVersion { get; set; }
     }
 }
