@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using Lykke.Service.BlockchainApi.Contract.Balances;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
@@ -21,6 +22,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// State of the transaction
         /// </summary>
         [JsonProperty("state")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public BroadcastedTransactionState State { get; set; }
 
         /// <summary>
@@ -64,6 +66,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// </summary>
         [CanBeNull]
         [JsonProperty("errorCode")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public BlockchainErrorCode? ErrorCode { get; set; }
 
         /// <summary>
