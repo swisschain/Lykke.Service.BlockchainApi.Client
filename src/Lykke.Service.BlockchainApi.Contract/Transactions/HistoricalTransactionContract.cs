@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Lykke.Service.BlockchainApi.Contract.Common;
+using Newtonsoft.Json.Converters;
 
 namespace Lykke.Service.BlockchainApi.Contract.Transactions
 {
@@ -61,6 +62,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// </summary>
         [CanBeNull]
         [JsonProperty("transactionType")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public TransactionType? TransactionType { get; set; }
     }
 }

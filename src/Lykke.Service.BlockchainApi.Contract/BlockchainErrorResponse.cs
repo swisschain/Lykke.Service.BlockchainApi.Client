@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Lykke.Service.BlockchainApi.Contract
 {
@@ -16,6 +17,7 @@ namespace Lykke.Service.BlockchainApi.Contract
         /// Error code
         /// </summary>
         [JsonProperty("errorCode")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public BlockchainErrorCode ErrorCode { get; set; }
 
         /// <summary>
