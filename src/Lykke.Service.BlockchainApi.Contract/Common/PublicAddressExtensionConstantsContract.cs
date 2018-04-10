@@ -39,5 +39,16 @@ namespace Lykke.Service.BlockchainApi.Contract.Common
         /// </summary>
         [JsonProperty("displayName")]
         public string DisplayName { get; set; }
+
+        /// <summary>
+        /// Public address main part name, which will
+        /// displayed to the user whenever public address
+        /// will be displayed or entered by the client.
+        /// If this field is empty, then default name
+        /// will be used.
+        /// Can be Empty.
+        /// </summary>
+        [JsonProperty("baseDisplayName")]
+        public string BaseDisplayName { get; set; }
     }
 }

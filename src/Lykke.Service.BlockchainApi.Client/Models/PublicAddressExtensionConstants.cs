@@ -37,6 +37,16 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public string DisplayName { get; }
 
+        /// <summary>
+        /// Public address main part name, which will
+        /// displayed to the user whenever public address
+        /// will be displayed or entered by the client.
+        /// If this field is empty, then default name
+        /// will be used.
+        /// Can be Empty.
+        /// </summary>
+        public string BaseDisplayName { get; }
+
         public PublicAddressExtensionConstants(PublicAddressExtensionConstantsContract contract)
         {
             if (contract == null)
@@ -54,6 +64,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
 
             Separator = contract.Separator;
             DisplayName = contract.DisplayName;
+            BaseDisplayName = contract.BaseDisplayName;
         }
     }
 }
