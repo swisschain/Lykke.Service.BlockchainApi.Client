@@ -57,7 +57,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             {
                 throw new ResultValidationException("Separator can't be control character", (int)contract.Separator);
             }
-            if (string.IsNullOrWhiteSpace(DisplayName))
+            if (string.IsNullOrWhiteSpace(contract.DisplayName))
             {
                 throw new ResultValidationException("Display name can't be empty", contract.DisplayName);
             }
