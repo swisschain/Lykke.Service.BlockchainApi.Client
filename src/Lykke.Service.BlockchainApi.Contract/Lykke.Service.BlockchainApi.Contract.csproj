@@ -12,7 +12,7 @@
     <RepositoryUrl>https://github.com/LykkeCity/Lykke.Service.BlockchainApi.Client.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>Lykke</PackageTags>
-    <Version>12.1.0</Version>
+    <Version>12.2.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
-    <PackageReference Include="Lykke.Common" Version="6.0.0" />
+    <PackageReference Include="Lykke.Common" Version="6.5.0" />
   </ItemGroup>
 
 </Project>
