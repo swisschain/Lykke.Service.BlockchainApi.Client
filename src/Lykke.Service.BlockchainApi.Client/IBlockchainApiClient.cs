@@ -168,6 +168,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
         /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
         /// </exception>
+        /// <exception cref="TransactionAlreadyBroadcastedException">
+        /// Transaction has been already broadcasted or even removed
+        /// </exception>
         Task<TransactionBuildingResult> BuildSingleTransactionAsync(Guid operationId, string fromAddress, string fromAddressContext, string toAddress, BlockchainAsset asset, decimal amount, bool includeFee);
 
         /// <summary>
@@ -179,6 +182,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="sendTransactionHash">Hash of the send transaction, which should be received</param>
+        /// <exception cref="TransactionAlreadyBroadcastedException">
+        /// Transaction has been already broadcasted or even removed
+        /// </exception>
         Task<TransactionBuildingResult> BuildSingleReceiveTransactionAsync(Guid operationId, string sendTransactionHash);
 
         /// <summary>
@@ -206,6 +212,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
         /// </exception>
+        /// <exception cref="TransactionAlreadyBroadcastedException">
+        /// Transaction has been already broadcasted or even removed
+        /// </exception>
         Task<TransactionBuildingResult> BuildTransactionWithManyInputsAsync(Guid operationId, IEnumerable<BuildingTransactionInput> inputs, string toAddress, BlockchainAsset asset);
 
         /// <summary>
@@ -230,6 +239,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </exception>
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
+        /// </exception>
+        /// <exception cref="TransactionAlreadyBroadcastedException">
+        /// Transaction has been already broadcasted or even removed
         /// </exception>
         Task<TransactionBuildingResult> BuildTransactionWithManyOutputsAsync(Guid operationId, string fromAddress, string fromAddressContext, IEnumerable<BuildingTransactionOutput> outputs, BlockchainAsset asset);
 
@@ -256,6 +268,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </exception>
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
+        /// </exception>
+        /// <exception cref="TransactionAlreadyBroadcastedException">
+        /// Transaction has been already broadcasted or even removed
         /// </exception>
         Task<TransactionBuildingResult> RebuildTransactionAsync(Guid operationId, decimal feeFactor);
 
