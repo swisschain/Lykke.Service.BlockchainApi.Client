@@ -62,7 +62,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// </summary>
         [CanBeNull]
         [JsonProperty("transactionType")]
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter), true)]
         public TransactionType? TransactionType { get; set; }
     }
 }
