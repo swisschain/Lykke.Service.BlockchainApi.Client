@@ -17,7 +17,7 @@ namespace Lykke.Service.BlockchainApi.Contract
         /// Error code
         /// </summary>
         [JsonProperty("errorCode")]
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter), true)]
         public BlockchainErrorCode ErrorCode { get; set; }
 
         /// <summary>

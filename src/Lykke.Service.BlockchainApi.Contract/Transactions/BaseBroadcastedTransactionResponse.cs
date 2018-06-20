@@ -22,7 +22,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// State of the transaction
         /// </summary>
         [JsonProperty("state")]
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter), true)]
         public BroadcastedTransactionState State { get; set; }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
         /// </summary>
         [CanBeNull]
         [JsonProperty("errorCode")]
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter), true)]
         public BlockchainErrorCode? ErrorCode { get; set; }
 
         /// <summary>
