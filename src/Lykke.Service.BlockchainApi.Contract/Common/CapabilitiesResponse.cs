@@ -79,5 +79,31 @@ namespace Lykke.Service.BlockchainApi.Contract.Common
         [CanBeNull]
         [JsonProperty("canReturnExplorerUrl")]
         public bool? CanReturnExplorerUrl { get; set; }
+
+        /// <summary>
+        /// Should be true if 
+        /// [GET] /api/addresses/{address}/underlying and
+        /// [GET] /api/addresses/{address}/virtual calls are
+        /// supported.
+        /// Could be used by some blockchains, with dynamically
+        /// changed actual address of the wallets. They could
+        /// generate static virtual address, with which common
+        /// part will operate and update underlying (blockchain
+        /// native) address for the given virtual address as
+        /// needed.
+        /// </summary>
+        [CanBeNull]
+        [JsonProperty("isAddressMappingRequired")]
+        public bool? IsAddressMappingRequired { get; set; }
+
+        /// <summary>
+        /// Should be true if
+        /// blockchain doesn’t allow to start withdrawal
+        /// from some address, if there are in progress
+        /// deposits or withdrawals to the same address.
+        /// </summary>
+        [CanBeNull]
+        [JsonProperty("isExclusiveWithdrawalsRequired")]
+        public bool? IsExclusiveWithdrawalsRequired { get; set; }
     }
 }
