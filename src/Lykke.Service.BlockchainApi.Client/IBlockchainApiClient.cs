@@ -166,7 +166,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <exception cref="ErrorResponseException">
         /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
         /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
-        /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughBalance"/>
         /// </exception>
         /// <exception cref="TransactionAlreadyBroadcastedException">
         /// Transaction has been already broadcasted or even removed
@@ -207,7 +207,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <exception cref="ErrorResponseException">
         /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
         /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
-        /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughBalance"/>
         /// </exception>
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
@@ -235,7 +235,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <exception cref="ErrorResponseException">
         /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
         /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
-        /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughBalance"/>
         /// </exception>
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
@@ -264,7 +264,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <exception cref="ErrorResponseException">
         /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
         /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
-        /// - <see cref="BlockchainErrorCode.NotEnoughtBalance"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughBalance"/>
         /// </exception>
         /// <exception cref="NotSupportedException">
         /// Operation is not supported for the given blockchain. See <see cref="GetCapabilitiesAsync"/>
@@ -288,6 +288,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="operationId">Lykke unique operation ID</param>
         /// <param name="signedTransaction">The signed transaction returned by the Blockchain.SignService after signing</param>
         /// <returns>Transaction broadcasting result </returns>
+        /// <exception cref="ErrorResponseException">
+        /// Among <see cref="BlockchainErrorCode.Unknown"/> error next error codes can be specified:
+        /// - <see cref="BlockchainErrorCode.AmountIsTooSmall"/>
+        /// - <see cref="BlockchainErrorCode.NotEnoughBalance"/>
+        /// - <see cref="BlockchainErrorCode.BuildingShouldBeRepeated"/>
+        /// </exception>
         Task<TransactionBroadcastingResult> BroadcastTransactionAsync(Guid operationId, string signedTransaction);
 
         /// <summary>

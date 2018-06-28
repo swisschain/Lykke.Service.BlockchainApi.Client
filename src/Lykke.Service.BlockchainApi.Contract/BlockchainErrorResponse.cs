@@ -53,8 +53,11 @@ namespace Lykke.Service.BlockchainApi.Contract
                     case BlockchainErrorCode.AmountIsTooSmall:
                         return "Amount is to small to execute transaction";
 
-                    case BlockchainErrorCode.NotEnoughtBalance:
+                    case BlockchainErrorCode.NotEnoughBalance:
                         return "Not enought balance on the source address to execute transaction";
+
+                    case BlockchainErrorCode.BuildingShouldBeRepeated:
+                        return "Transaction should be built, signed and broadcasted again";
 
                     default:
                         throw new ArgumentOutOfRangeException(nameof(code), code, null);
