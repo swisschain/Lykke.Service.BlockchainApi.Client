@@ -13,7 +13,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
                 case BlockchainErrorCode.AmountIsTooSmall:
                     return TransactionBroadcastingResult.AmountIsTooSmall;
                     
-                case BlockchainErrorCode.NotEnoughtBalance:
+                case BlockchainErrorCode.NotEnoughBalance:
                     return TransactionBroadcastingResult.NotEnoughBalance;
 
                 case BlockchainErrorCode.BuildingShouldBeRepeated:
