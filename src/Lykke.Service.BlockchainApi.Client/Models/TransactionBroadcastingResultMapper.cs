@@ -16,6 +16,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
                 case BlockchainErrorCode.NotEnoughtBalance:
                     return TransactionBroadcastingResult.NotEnoughBalance;
 
+                case BlockchainErrorCode.BuildingShouldBeRepeated:
+                    return TransactionBroadcastingResult.BuildingShouldBeRepeated;
+
                 case BlockchainErrorCode.Unknown:
                 default:
                     throw new ResultValidationException("Invalid error code", errorCode);

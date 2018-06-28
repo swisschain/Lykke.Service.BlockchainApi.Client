@@ -26,6 +26,11 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// <summary>
         /// Transaction can’t be executed due to balance insufficiency on the source address
         /// </summary>
-        NotEnoughBalance
+        NotEnoughBalance,
+
+        /// <summary>
+        /// Transaction should be built, signed and broadcasted again
+        /// </summary>
+        BuildingShouldBeRepeated
     }
 }
