@@ -77,7 +77,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <summary>
         /// Should check and return wallet address validity
         /// </summary>
-        /// <param name="address">Wallet address</param>
+        /// <param name="address">
+        /// Wallet address (for the blockchains with address mapping it must be underlying address)
+        /// </param>
         [Get("/api/addresses/{address}/validity")]
         Task<AddressValidationResponse> IsAddressValidAsync(string address);
 
@@ -89,9 +91,25 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Errors:
         /// - 501 Not Implemented - function is not implemented in the blockchain.
         /// </summary>
-        /// <param name="address">Wallet address</param>
+        /// <param name="address">
+        /// Wallet address (for the blockchains with address mapping it must be underlying address)
+        /// </param>
         [Get("/api/addresses/{address}/explorer-url")]
         Task<string[]> GetAddressExplorerUrlsAsync(string address);
+
+        /// <summary>
+        /// Should return underlying (blockchain native) address for the given virtual address
+        /// </summary>
+        /// <param name="address">Virtual address</param>
+        [Get("/api/addresses/{address}/underlying")]
+        Task<UnderlyingAddressResponse> GetUnderlyingAddressAsync(string address);
+
+        /// <summary>
+        /// Should return virtual address for the given underlying (blockchain native) address
+        /// </summary>
+        /// <param name="address">Underlying address</param>
+        [Get("/api/addresses/{address}/virtual")]
+        Task<VirtualAddressResponse> GetVirtualAddressAsync(string address);
 
         #endregion
 
@@ -102,10 +120,16 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should remember the wallet address to observe the wallet balance and return it in the 
         /// <see cref="GetWalletBalancesAsync"/>, if the balance is non zero.
         /// 
+        /// If there was any balance on the wallet before this call, 
+        /// it could be ignored at the discretion of the implementation 
+        /// (not returned in the <see cref="GetWalletBalancesAsync"/>).
+        ///
         /// Errors:
         /// - 409 Conflict: specified address is already observed.
         /// </summary>
-        /// <param name="address">Wallet address</param>
+        /// <param name="address">
+        /// Wallet address (for the blockchains with address mapping it must be virtual address)
+        /// </param>
         [Post("/api/balances/{address}/observation")]
         Task StartBalanceObservationAsync(string address);
 
@@ -115,7 +139,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Errors:
         /// - 204 No content: specified address is not observed
         /// </summary>
-        /// <param name="address">Wallet address</param>
+        /// <param name="address">
+        /// Wallet address (for the blockchains with address mapping it must be virtual address)
+        /// </param>
         [Delete("/api/balances/{address}/observation")]
         Task StopBalanceObservationAsync(string address);
 
@@ -297,7 +323,10 @@ namespace Lykke.Service.BlockchainApi.Client
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
         /// </summary>
-        /// <param name="address">Address for which outgoing transactions history should be returned</param>
+        /// <param name="address">
+        /// Address for which outgoing transactions history should be returned.
+        /// For the blockchains with address mapping, it could be virtual or underlying address.
+        /// </param>
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
         [Get("/api/transactions/history/from/{address}")]
@@ -310,7 +339,10 @@ namespace Lykke.Service.BlockchainApi.Client
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
         /// </summary>
-        /// <param name="address">Address for which incoming transactions history should be returned</param>
+        /// <param name="address">
+        /// Address for which incoming transactions history should be returned.
+        /// For the blockchains with address mapping, it could be virtual or underlying address
+        /// </param>
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
         [Get("/api/transactions/history/to/{address}")]

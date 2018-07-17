@@ -29,6 +29,9 @@ namespace Lykke.Service.BlockchainApi.Contract.Wallets
 
         /// <summary>
         /// Address which identifies the wallet in the blockchain
+        /// 
+        /// For the blockchains with address mapping, this should
+        /// be virtual address
         /// </summary>
         [JsonProperty("publicAddress")]
         public string PublicAddress { get; set; }

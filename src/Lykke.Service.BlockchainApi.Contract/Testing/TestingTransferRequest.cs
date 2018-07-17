@@ -13,6 +13,9 @@ namespace Lykke.Service.BlockchainApi.Contract.Testing
     {
         /// <summary>
         /// Source address 
+        /// 
+        /// For the blockchains with address mapping, this could
+        /// be virtual or underlying address
         /// </summary>
         [JsonProperty("fromAddress")]
         public string FromAddress { get; set; }

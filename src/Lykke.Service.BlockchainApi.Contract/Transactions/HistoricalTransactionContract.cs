@@ -23,12 +23,18 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
 
         /// <summary>
         /// Source address
+        /// 
+        /// For the blockchains with address mapping,
+        /// this should be underlying (real) address
         /// </summary>
         [JsonProperty("fromAddress")]
         public string FromAddress { get; set; }
 
         /// <summary>
         /// Destination address
+        /// 
+        /// For the blockchains with address mapping,
+        /// this should be underlying (real) address
         /// </summary>
         [JsonProperty("toAddress")]
         public string ToAddress { get; set; }
