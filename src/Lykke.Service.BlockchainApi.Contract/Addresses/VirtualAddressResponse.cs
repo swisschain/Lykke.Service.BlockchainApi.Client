@@ -9,7 +9,7 @@ namespace Lykke.Service.BlockchainApi.Contract.Addresses
     /// - [GET] /api/addresses/{address}/virtual
     /// </summary>
     [PublicAPI]
-    public class AddressVirtualResponse
+    public class VirtualAddressResponse
     {
         /// <summary>
         /// Virtual  address

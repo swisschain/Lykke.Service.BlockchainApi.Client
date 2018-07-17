@@ -102,14 +102,14 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         /// <param name="address">Virtual address</param>
         [Get("/api/addresses/{address}/underlying")]
-        Task<AddressUnderlyingResponse> GetUnderlyingAddressAsync(string address);
+        Task<UnderlyingAddressResponse> GetUnderlyingAddressAsync(string address);
 
         /// <summary>
         /// Should return virtual address for the given underlying (blockchain native) address
         /// </summary>
         /// <param name="address">Underlying address</param>
         [Get("/api/addresses/{address}/virtual")]
-        Task<AddressVirtualResponse> GetVirtualAddressAsync(string address);
+        Task<VirtualAddressResponse> GetVirtualAddressAsync(string address);
 
         #endregion
 
