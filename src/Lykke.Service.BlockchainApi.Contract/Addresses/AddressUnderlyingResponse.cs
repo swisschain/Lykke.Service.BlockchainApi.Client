@@ -4,8 +4,9 @@ using Newtonsoft.Json;
 namespace Lykke.Service.BlockchainApi.Contract.Addresses
 {
     /// <summary>
-    /// Should return underlying (blockchain native) address 
-    /// for the given virtual address.
+    /// Underlying (blockchain native) address contract
+    /// Used in:
+    /// - [GET] /api/addresses/{address}/underlying
     /// </summary>
     [PublicAPI]
     public class AddressUnderlyingResponse
