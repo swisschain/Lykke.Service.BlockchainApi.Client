@@ -45,6 +45,12 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         public string Error { get; }
 
         /// <summary>
+        /// Error code
+        /// Should be non empty if the <see cref="State"/> is <see cref="BroadcastedTransactionState.Failed"/>
+        /// </summary>
+        public BlockchainErrorCode? ErrorCode { get; }
+
+        /// <summary>
         /// Incremental ID of the moment, when the transaction
         /// state changing is detected. It should be the same
         /// sequence as for <see cref="WalletBalance.Block"/>. 
@@ -115,6 +121,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
                 Error = string.IsNullOrWhiteSpace(contract.Error)
                     ? "Blockchain API doesn't specify an error message"
                     : contract.Error;
+                ErrorCode = contract.ErrorCode;
             }
         }
     }
