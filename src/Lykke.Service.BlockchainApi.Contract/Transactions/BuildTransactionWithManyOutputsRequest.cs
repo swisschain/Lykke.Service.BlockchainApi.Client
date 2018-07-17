@@ -29,6 +29,9 @@ namespace Lykke.Service.BlockchainApi.Contract.Transactions
 
         /// <summary>
         /// Source address
+        /// 
+        /// For the blockchains with address mapping,
+        /// this could be virtual address.
         /// </summary>
         [JsonProperty("fromAddress")]
         public string FromAddress { get; set; }

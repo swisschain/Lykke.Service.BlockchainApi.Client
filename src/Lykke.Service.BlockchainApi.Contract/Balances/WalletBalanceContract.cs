@@ -13,6 +13,9 @@ namespace Lykke.Service.BlockchainApi.Contract.Balances
     {
         /// <summary>
         /// Wallet address
+        /// 
+        /// For the blockchains with address mapping,
+        /// this should be virtual address
         /// </summary>
         [JsonProperty("address")]
         public string Address { get; set; }

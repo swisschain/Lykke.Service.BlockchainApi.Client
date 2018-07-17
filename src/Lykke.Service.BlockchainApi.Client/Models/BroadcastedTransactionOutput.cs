@@ -12,6 +12,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
     {
         /// <summary>
         /// Destination address
+        /// 
+        /// For the blockchains with address mapping,
+        /// this could be virtual or underlying address.
         /// </summary>
         public string ToAddress { get; }
 
