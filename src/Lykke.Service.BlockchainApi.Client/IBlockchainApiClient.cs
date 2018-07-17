@@ -93,7 +93,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <summary>
         /// Should check and return wallet address validity
         /// </summary>
-        /// <param name="address">Wallet address</param>
+        /// <param name="address">
+        /// Wallet address (for the blockchains with address mapping it must be underlying address)
+        /// </param>
         Task<bool> IsAddressValidAsync(string address);
 
         /// <summary>
@@ -101,7 +103,9 @@ namespace Lykke.Service.BlockchainApi.Client
         /// 
         /// Should return one or many blockchain explorer URLs for the given address.
         /// </summary>
-        /// <param name="address">Wallet address</param>
+        /// <param name="address">
+        /// Wallet address (for the blockchains with address mapping it must be underlying address)
+        /// </param>
         Task<IReadOnlyList<Uri>> GetAddressExplorerUrlAsync(string address);
 
         /// <summary>
@@ -125,20 +129,32 @@ namespace Lykke.Service.BlockchainApi.Client
         /// Should remember the wallet address to observe the wallet balance and return it in the 
         /// <see cref="EnumerateWalletBalanceBatchesAsync"/>, if the balance is non zero.
         /// 
+        /// If there was any balance on the wallet before this call, 
+        /// it could be ignored at the discretion of the implementation 
+        /// (not returned in the <see cref="EnumerateWalletBalanceBatchesAsync"/>).
+        ///
+        /// For the blockchains with address mapping, address should be virtual address. 
+        /// 
         /// Errors:
         /// - 409 Conflict: specified address is already observed.
         /// </summary>
-        /// <param name="address">Wallet address</param>
+        /// <param name="address">
+        /// Wallet address (for the blockchains with address mapping it must be virtual address)
+        /// </param>
         /// <returns>true - if balance observation is started. false - if balance observation was already started</returns>
         Task<bool> StartBalanceObservationAsync(string address);
 
         /// <summary>
         /// Should forget the wallet address and stop observe its balance.
         /// 
+        /// For the blockchains with address mapping, address should be virtual address.
+        /// 
         /// Errors:
         /// - 204 No content: specified address is not observed
         /// </summary>
-        /// <param name="address">Wallet address</param>
+        /// <param name="address">
+        /// Wallet address (for the blockchains with address mapping it must be virtual address)
+        /// </param>
         /// <returns>true - if balance observation is stopped. false - if balance is not observed to stop it</returns>
         Task<bool> StopBalanceObservationAsync(string address);
 
@@ -401,7 +417,10 @@ namespace Lykke.Service.BlockchainApi.Client
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
         /// </summary>
-        /// <param name="address">Address for which outgoing transactions history should be returned</param>
+        /// <param name="address">
+        /// Address for which outgoing transactions history should be returned
+        /// For the blockchains with address mapping, it could be virtual or underlying address.
+        /// </param>
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
@@ -414,7 +433,10 @@ namespace Lykke.Service.BlockchainApi.Client
         /// If there are no transactions to return, empty array should be returned.
         /// Amount of the returned transactions should not exceed <paramref name="take"/>.
         /// </summary>
-        /// <param name="address">Address for which incoming transactions history should be returned</param>
+        /// <param name="address">
+        /// Address for which incoming transactions history should be returned
+        /// For the blockchains with address mapping, it could be virtual or underlying address.
+        /// </param>
         /// <param name="afterHash">Hash of the transaction after which history should be returned</param>
         /// <param name="take">Maximum transactions to return</param>
         /// <param name="assetAccuracyProvider">Delegate which should provide blockchain asset pair accuracy by the blockchain asset ID</param>
