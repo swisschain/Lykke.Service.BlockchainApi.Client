@@ -220,6 +220,14 @@ namespace Lykke.Service.BlockchainApi.Client
                 : Array.Empty<Uri>();
         }
 
+        /// <inheritdoc />
+        public async Task<string> GetAddressUnderlying(string address)
+        {
+            ValidateAddressIsNotEmpty(address);
+
+            return (await _runner.RunWithRetriesAsync(() => _api.GetAddressUnderlying(address))).UnderlyingAddress;
+        }
+
         #endregion
 
 

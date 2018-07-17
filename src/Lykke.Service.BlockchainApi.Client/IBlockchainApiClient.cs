@@ -104,6 +104,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// <param name="address">Wallet address</param>
         Task<IReadOnlyList<Uri>> GetAddressExplorerUrlAsync(string address);
 
+        /// <summary>
+        /// Should return underlying (blockchain native) address for the given virtual address
+        /// </summary>
+        /// <param name="address">Virtual address</param>
+        Task<string> GetAddressUnderlying(string address);
+
         #endregion
 
 
