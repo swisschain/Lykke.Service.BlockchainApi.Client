@@ -42,5 +42,16 @@ namespace Lykke.Service.BlockchainApi.Contract.Balances
         /// </summary>
         [JsonProperty("block")]
         public long Block { get; set; }
+
+        /// <summary>
+        /// Flag that indicate, if given address is 
+        /// compromised and can’t be used for further 
+        /// for input transactions.
+        /// Optional. If omitted, will be interpreted as
+        /// false
+        /// </summary>
+        [CanBeNull]
+        [JsonProperty("isAddressCompromised")]
+        public bool? IsAddressCompromised { get; set; }
     }
 }

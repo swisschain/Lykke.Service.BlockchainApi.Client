@@ -32,6 +32,13 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public long Block { get; }
 
+        /// <summary>
+        /// Flag that indicate, if given address is 
+        /// compromised and can’t be used for further 
+        /// for input transactions.
+        /// </summary>
+        public bool IsAddressCompromised { get; }
+
         public WalletBalance(WalletBalanceContract contract, int assetAccuracy)
         {
             if (contract == null)
@@ -54,6 +61,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             Address = contract.Address;
             AssetId = contract.AssetId;
             Block = contract.Block;
+            IsAddressCompromised = contract.IsAddressCompromised ?? false;
 
             try
             {
