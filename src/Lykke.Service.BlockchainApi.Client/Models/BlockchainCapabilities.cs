@@ -38,7 +38,7 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// if this flag is true.
         /// For example: Address Tag in the Ripple.
         /// </summary>
-        public bool IsPublicAddressExtensionRequired { get; set; }
+        public bool IsPublicAddressExtensionRequired { get; }
 
         /// <summary>
         /// If blockchain requires broadcasting of the “receive”
@@ -47,14 +47,36 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// true and <see cref="IBlockchainApiClient.BuildSingleReceiveTransactionAsync"/>
         /// method should be implemented.
         /// </summary>
-        public bool IsReceiveTransactionRequired { get; set; }
+        public bool IsReceiveTransactionRequired { get; }
 
         /// <summary>
         /// Should be true if
         /// <see cref="IBlockchainApiClient.GetAddressExplorerUrlAsync"/>
         /// is supported.
         /// </summary>
-        public bool CanReturnExplorerUrl { get; set; }
+        public bool CanReturnExplorerUrl { get; }
+
+        /// <summary>
+        /// Should be true if 
+        /// <see cref="IBlockchainApiClient.GetUnderlyingAddressAsync"/>
+        /// <see cref="IBlockchainApiClient.GetVirtualAddressAsync"/>
+        /// calls are supported.
+        /// Could be used by some blockchains, with dynamically
+        /// changed actual address of the wallets. They could
+        /// generate static virtual address, with which common
+        /// part will operate and update underlying (blockchain
+        /// native) address for the given virtual address as
+        /// needed.
+        /// </summary>
+        public bool IsAddressMappingRequired { get; }
+
+        /// <summary>
+        /// Should be true if
+        /// blockchain doesn’t allow to start withdrawal
+        /// from some address, if there are in progress
+        /// deposits or withdrawals to the same address.
+        /// </summary>
+        public bool IsExclusiveWithdrawalsRequired { get; }
 
         public BlockchainCapabilities(CapabilitiesResponse contract)
         {
@@ -70,6 +92,8 @@ namespace Lykke.Service.BlockchainApi.Client.Models
             IsPublicAddressExtensionRequired = contract.IsPublicAddressExtensionRequired ?? false;
             IsReceiveTransactionRequired = contract.IsReceiveTransactionRequired ?? false;
             CanReturnExplorerUrl = contract.CanReturnExplorerUrl ?? false;
+            IsAddressMappingRequired = contract.IsAddressMappingRequired ?? false;
+            IsExclusiveWithdrawalsRequired = contract.IsExclusiveWithdrawalsRequired ?? false;
         }
     }
 }
