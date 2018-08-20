@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Common.Log;
 using Lykke.Service.BlockchainApi.Client.Models;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Common;
@@ -20,13 +21,13 @@ namespace Lykke.Service.BlockchainApi.Client
     [PublicAPI]
     public sealed class BlockchainApiClient : IBlockchainApiClient
     {
-        public string HostUrl { get; }
+        public string HostUrl { get; private set; }
 
-        private readonly HttpClient _httpClient;
-        private readonly IBlockchainApi _api;
-        private readonly ApiRunner _runner;
+        private HttpClient _httpClient;
+        private IBlockchainApi _api;
+        private ApiRunner _runner;
 
-        public BlockchainApiClient(ILog log, string hostUrl, int retriesCount = 5)
+        private void InitBlockchainApiClient(ILog log, string hostUrl, int retriesCount = 5)
         {
             HostUrl = hostUrl ?? throw new ArgumentNullException(nameof(hostUrl));
 
@@ -45,6 +46,23 @@ namespace Lykke.Service.BlockchainApi.Client
             _api = RestService.For<IBlockchainApi>(_httpClient);
 
             _runner = new ApiRunner(retriesCount);
+        }
+
+        [Obsolete("Please, use the overload which consumes ILogFactory.")]
+        public BlockchainApiClient(ILog log, string hostUrl, int retriesCount = 5)
+        {
+            if (log == null)
+                throw new ArgumentNullException(nameof(log));
+
+            InitBlockchainApiClient(log, hostUrl, retriesCount);
+        }
+
+        public BlockchainApiClient(ILogFactory logFactory, string hostUrl, int retriesCount = 5)
+        {
+            if (logFactory == null)
+                throw new ArgumentNullException(nameof(logFactory));
+
+            InitBlockchainApiClient(logFactory.CreateLog(this), hostUrl, retriesCount);
         }
 
 
