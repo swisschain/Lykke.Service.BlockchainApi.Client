@@ -12,7 +12,7 @@
     <RepositoryUrl>https://github.com/LykkeCity/Lykke.Service.BlockchainApi.Client.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>Lykke</PackageTags>
-    <Version>13.1.1</Version>
+    <Version>13.2.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
