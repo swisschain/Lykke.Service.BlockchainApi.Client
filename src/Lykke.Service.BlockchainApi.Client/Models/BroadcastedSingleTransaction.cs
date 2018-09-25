@@ -16,25 +16,44 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// Should be positive number if the <see cref="BaseBroadcastedTransaction.State"/> is <see cref="BroadcastedTransactionState.Completed"/>
         /// </summary>
         public decimal Amount { get; }
-        
+
         public BroadcastedSingleTransaction(BroadcastedSingleTransactionResponse contract, int assetAccuracy, Guid expectedOperationId) :
             base(contract, assetAccuracy, expectedOperationId)
         {
+            var isAmountValid = false;
             if (!string.IsNullOrEmpty(contract.Amount))
             {
                 try
                 {
                     Amount = Conversions.CoinsFromContract(contract.Amount, assetAccuracy);
 
-                    if (Amount <= 0)
+                    if (contract.State == BroadcastedTransactionState.Completed && Amount > 0
+                        || (contract.State == BroadcastedTransactionState.Failed 
+                            || contract.State == BroadcastedTransactionState.InProgress
+                            ) && Amount >= 0
+                       )
                     {
-                        throw new ResultValidationException("Amount should be positive number", contract.Amount);
+                        isAmountValid = true;
                     }
                 }
                 catch (ConversionException ex)
                 {
                     throw new ResultValidationException("Failed to parse amount", contract.Amount, ex);
                 }
+            }
+            else
+            {
+                if (contract.State == BroadcastedTransactionState.Failed ||
+                    contract.State == BroadcastedTransactionState.InProgress)
+                {
+                    isAmountValid = true;
+                }
+            }
+
+
+            if (!isAmountValid)
+            {
+                throw new ResultValidationException("Amount should be positive number", contract.Amount);
             }
         }
     }
