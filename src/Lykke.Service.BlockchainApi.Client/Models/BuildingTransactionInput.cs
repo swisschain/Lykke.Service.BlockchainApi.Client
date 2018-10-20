@@ -33,9 +33,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         protected BuildingTransactionInput(string fromAddress, string fromAddressContext, decimal amount)
         {
-            if (string.IsNullOrWhiteSpace(FromAddress))
+            if (string.IsNullOrWhiteSpace(fromAddress))
             {
-                throw new ArgumentException(nameof(fromAddress), "Source address is required");
+                throw new ArgumentException("Source address is required", nameof(fromAddress));
             }
             if (amount <= 0)
             {
