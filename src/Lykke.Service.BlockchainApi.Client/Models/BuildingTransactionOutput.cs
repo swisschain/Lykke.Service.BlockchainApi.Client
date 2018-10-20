@@ -30,9 +30,9 @@ namespace Lykke.Service.BlockchainApi.Client.Models
         /// </summary>
         public BuildingTransactionOutput(string toAddress, decimal amount)
         {
-            if (string.IsNullOrWhiteSpace(ToAddress))
+            if (string.IsNullOrWhiteSpace(toAddress))
             {
-                throw new ArgumentException(nameof(toAddress), "Destination address is required");
+                throw new ArgumentException("Destination address is required", nameof(toAddress));
             }
             if (amount <= 0)
             {
