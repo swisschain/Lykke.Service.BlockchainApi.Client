@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Lykke.Service.BlockchainApi.Client\Lykke.Service.BlockchainApi.Client.csproj" />
     <ProjectReference Include="..\..\src\Lykke.Service.BlockchainApi.Contract\Lykke.Service.BlockchainApi.Contract.csproj" />
   </ItemGroup>
 

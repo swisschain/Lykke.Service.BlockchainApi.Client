@@ -27,11 +27,13 @@ namespace Lykke.Service.BlockchainApi.Client
         private IBlockchainApi _api;
         private ApiRunner _runner;
 
-        private void InitBlockchainApiClient(ILog log, string hostUrl, int retriesCount = 5)
+        /// <param name="timeout">Timeout affects all request. Leave it null if you do not want timeout.</param>
+        private void InitBlockchainApiClient(ILog log, string hostUrl, int retriesCount = 5,
+            TimeSpan? timeout = null, HttpMessageHandler messageHandler = null)
         {
             HostUrl = hostUrl ?? throw new ArgumentNullException(nameof(hostUrl));
 
-            _httpClient = new HttpClient(new HttpErrorLoggingHandler(log))
+            _httpClient = new HttpClient(new HttpErrorLoggingHandler(log, messageHandler))
             {
                 BaseAddress = new Uri(hostUrl),
                 DefaultRequestHeaders =
@@ -42,6 +44,12 @@ namespace Lykke.Service.BlockchainApi.Client
                     }
                 }
             };
+
+            if (timeout.HasValue)
+            {
+                _httpClient.Timeout = timeout.Value;
+            }
+            
 
             _api = RestService.For<IBlockchainApi>(_httpClient);
 
@@ -54,7 +62,7 @@ namespace Lykke.Service.BlockchainApi.Client
             if (log == null)
                 throw new ArgumentNullException(nameof(log));
 
-            InitBlockchainApiClient(log, hostUrl, retriesCount);
+            InitBlockchainApiClient(log, hostUrl, retriesCount,  null, null);
         }
 
         public BlockchainApiClient(ILogFactory logFactory, string hostUrl, int retriesCount = 5)
@@ -62,7 +70,29 @@ namespace Lykke.Service.BlockchainApi.Client
             if (logFactory == null)
                 throw new ArgumentNullException(nameof(logFactory));
 
-            InitBlockchainApiClient(logFactory.CreateLog(this), hostUrl, retriesCount);
+            InitBlockchainApiClient(logFactory.CreateLog(this), hostUrl, retriesCount, null, null);
+        }
+
+        /// <summary>
+        /// With timeout parameter
+        /// </summary>
+        /// <param name="timeout">If operation takes more time than stated in timeout variable,
+        /// <exception cref="TaskCanceledException ">TaskCanceledException </exception>will be thrown</param>
+        public BlockchainApiClient(ILogFactory logFactory, string hostUrl, int retriesCount = 5, TimeSpan? timeout = null)
+        {
+            if (logFactory == null)
+                throw new ArgumentNullException(nameof(logFactory));
+
+            InitBlockchainApiClient(logFactory.CreateLog(this), hostUrl, retriesCount, timeout, null);
+        }
+
+        internal BlockchainApiClient(ILogFactory logFactory, string hostUrl, int retriesCount = 5, 
+            TimeSpan? timeout = null, HttpMessageHandler handler = null)
+        {
+            if (logFactory == null)
+                throw new ArgumentNullException(nameof(logFactory));
+
+            InitBlockchainApiClient(logFactory.CreateLog(this), hostUrl, retriesCount, timeout, handler);
         }
 
 
