@@ -78,7 +78,7 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         /// <param name="timeout">If operation takes more time than stated in timeout variable,
         /// <exception cref="TaskCanceledException ">TaskCanceledException </exception>will be thrown</param>
-        public BlockchainApiClient(ILogFactory logFactory, string hostUrl, int retriesCount = 5, TimeSpan? timeout = null)
+        public BlockchainApiClient(ILogFactory logFactory, string hostUrl, TimeSpan timeout, int retriesCount = 5)
         {
             if (logFactory == null)
                 throw new ArgumentNullException(nameof(logFactory));
