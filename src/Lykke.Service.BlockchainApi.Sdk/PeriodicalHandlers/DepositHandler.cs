@@ -28,7 +28,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
         public override async Task Execute()
         {
             var currentState = await _state.GetAsync();
-            var state = currentState != null ? currentState.State : default(T);
+            var state = currentState?.State ?? default(T);
             var trace = await _job.TraceDepositsAsync(state, _assets.GetCachedAsync());
             var operationHashes = new HashSet<string>();
             var deposits = new List<BlockchainAction>();
