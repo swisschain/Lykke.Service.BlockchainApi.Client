@@ -6,7 +6,10 @@ using Lykke.AzureStorage.Tables.Entity.Metamodel;
 using Lykke.AzureStorage.Tables.Entity.Metamodel.Providers;
 using Lykke.Common.Log;
 using Lykke.Service.BlockchainApi.Sdk.Controllers;
-using Lykke.Service.BlockchainApi.Sdk.Domain;
+using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
+using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
+using Lykke.Service.BlockchainApi.Sdk.Domain.Operations;
+using Lykke.Service.BlockchainApi.Sdk.Domain.State;
 using Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers;
 using Lykke.SettingsReader;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -26,12 +29,12 @@ namespace Lykke.Service.BlockchainApi.Sdk
                 throw new ArgumentNullException(nameof(controllerTypes));
 
             var apmInstance = services.FirstOrDefault(s => s.ServiceType == typeof(ApplicationPartManager))?.ImplementationInstance;
-            var apm = apmInstance as ApplicationPartManager ??
-                throw new ArgumentException("ApplicationPartManager not found");
+            var apm = (ApplicationPartManager)apmInstance;
 
             // we will add only specific controllers,
             // so remove SDK application part first
-            var sdk = apm.ApplicationParts.FirstOrDefault(part => part.Name == Assembly.GetExecutingAssembly().GetName().Name);
+            var assemblyName = Assembly.GetExecutingAssembly().GetName();
+            var sdk = apm.ApplicationParts.FirstOrDefault(part => part.Name == assemblyName.Name);
             if (sdk != null)
             {
                 apm.ApplicationParts.Remove(sdk);
@@ -120,13 +123,14 @@ namespace Lykke.Service.BlockchainApi.Sdk
         /// <summary>
         /// Registers periodical handler and integration job-service implementation.
         /// </summary>
+        /// <typeparam name="TState">Type of object to keep state between calls of <see cref="IBlockchainJob.TraceDepositsAsync()"/>.</typeparam>  
         /// <param name="services">Collection of services</param>
         /// <param name="connectionStringManager">Connection string to integration Azure account storage</param>
         /// <param name="period">Interval used to call <see cref="IBlockchainJob.TraceDepositsAsync()"/></param>
         /// <param name="jobFactory">Factory of <see cref="IBlockchainJob"/></param>
         /// <returns></returns>
-        public static IServiceCollection AddBlockchainJob<T>(this IServiceCollection services, 
-            IReloadingManager<string> connectionStringManager, TimeSpan period, Func<IServiceProvider, IBlockchainJob<T>> jobFactory)
+        public static IServiceCollection AddBlockchainJob<TState>(this IServiceCollection services, 
+            IReloadingManager<string> connectionStringManager, TimeSpan period, Func<IServiceProvider, IBlockchainJob<TState>> jobFactory)
         {
             jobFactory = jobFactory ??
                 throw new ArgumentNullException(nameof(jobFactory));
@@ -134,17 +138,17 @@ namespace Lykke.Service.BlockchainApi.Sdk
             services
                 .AddSingleton(jobFactory)
                 .AddBlockchainCommonRepositories(connectionStringManager) 
-                .AddSingleton(sp => new StateRepository<T>(connectionStringManager, sp.GetRequiredService<ILogFactory>()))
+                .AddSingleton(sp => new StateRepository<TState>(connectionStringManager, sp.GetRequiredService<ILogFactory>()))
                 .AddBlockchainControllers(Type.EmptyTypes) // there are no specific controllers in job
                 .AddSingleton<IStartable>(sp =>
-                    new DepositHandler<T>(
+                    new DepositHandler<TState>(
                         period,
                         sp.GetRequiredService<ILogFactory>(),
                         sp.GetRequiredService<DepositWalletRepository>(),
                         sp.GetRequiredService<OperationRepository>(),
                         sp.GetRequiredService<AssetRepository>(),
-                        sp.GetRequiredService<StateRepository<T>>(),
-                        sp.GetRequiredService<IBlockchainJob<T>>()
+                        sp.GetRequiredService<StateRepository<TState>>(),
+                        sp.GetRequiredService<IBlockchainJob<TState>>()
                     )
                 );
 

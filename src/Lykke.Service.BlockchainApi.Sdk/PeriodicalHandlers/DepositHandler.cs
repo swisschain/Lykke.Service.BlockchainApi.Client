@@ -3,20 +3,23 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common;
 using Lykke.Common.Log;
-using Lykke.Service.BlockchainApi.Sdk.Domain;
+using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
+using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
+using Lykke.Service.BlockchainApi.Sdk.Domain.Operations;
+using Lykke.Service.BlockchainApi.Sdk.Domain.State;
 
 namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
 {
-    public class DepositHandler<T> : TimerPeriod
+    public class DepositHandler<TState> : TimerPeriod
     {
         readonly DepositWalletRepository _depositWallets;
         readonly OperationRepository _operations;
         readonly AssetRepository _assets;
-        readonly StateRepository<T> _state;
-        readonly IBlockchainJob<T> _job;
+        readonly StateRepository<TState> _state;
+        readonly IBlockchainJob<TState> _job;
 
         public DepositHandler(TimeSpan period, ILogFactory logFactory, DepositWalletRepository depositWallets, OperationRepository operations, AssetRepository assets,
-            StateRepository<T> state, IBlockchainJob<T> job) : base(period, logFactory, nameof(DepositHandler<T>))
+            StateRepository<TState> state, IBlockchainJob<TState> job) : base(period, logFactory, nameof(DepositHandler<TState>))
         {
             _depositWallets = depositWallets;
             _operations = operations;
@@ -28,8 +31,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
         public override async Task Execute()
         {
             var currentState = await _state.GetAsync();
-            var state = currentState != null ? currentState.State : default(T);
-            var trace = await _job.TraceDepositsAsync(state, _assets.GetCachedAsync());
+            var state = currentState != null ? currentState.State : default;
+            var trace = await _job.TraceDepositsAsync(state, async assetId => await _assets.GetAsync(assetId));
             var operationHashes = new HashSet<string>();
             var deposits = new List<BlockchainAction>();
 
@@ -41,7 +44,9 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
 
                 // changes made by our operations are accounted by API service,
                 // so here we enroll external deposits only
-                if (operationHashes.Contains(action.TransactionHash) || await _operations.GetOperationIndexAsync(action.TransactionHash) != null)
+                if (operationHashes.Contains(action.TransactionHash))
+                    continue;
+                else if (await _operations.GetOperationIndexAsync(action.TransactionHash) != null)
                     operationHashes.Add(action.TransactionHash);
                 else
                     deposits.Add(action);

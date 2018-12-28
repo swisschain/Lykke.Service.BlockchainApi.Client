@@ -4,6 +4,9 @@ using Lykke.Service.BlockchainApi.Contract.Transactions;
 
 namespace Lykke.Service.BlockchainApi.Sdk
 {
+    /// <summary>
+    /// Describes transaction state in blockchain
+    /// </summary>
     public class BlockchainTransaction
     {
         public BlockchainTransaction() {}

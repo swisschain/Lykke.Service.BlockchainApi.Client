@@ -20,7 +20,6 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 return BadRequest($"Address [{address}] is invalid");
             }
 
-
             return _api.GetExplorerUrl(address);
         }
 

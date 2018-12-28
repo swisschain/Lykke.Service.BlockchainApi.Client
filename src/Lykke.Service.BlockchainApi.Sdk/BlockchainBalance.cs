@@ -1,5 +1,8 @@
 namespace Lykke.Service.BlockchainApi.Sdk
 {
+    /// <summary>
+    /// Represents actual balance of address (account).
+    /// </summary>
     public class BlockchainBalance
     {
         public BlockchainBalance() {}

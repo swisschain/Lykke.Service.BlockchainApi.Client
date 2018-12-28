@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Balances;
 using Lykke.Service.BlockchainApi.Sdk.Domain;
+using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
+using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
 using Lykke.Service.BlockchainApi.Sdk.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,11 +20,17 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         readonly DepositWalletRepository _depositWallets;
         readonly IBlockchainApi _api;
 
-        public BalancesController(AssetRepository assets, DepositWalletRepository depositWallets, IBlockchainApi api) => 
-            (_assets, _depositWallets, _api) = (assets, depositWallets, api);
+        public BalancesController(AssetRepository assets, DepositWalletRepository depositWallets, IBlockchainApi api)
+        {
+            _assets = assets;
+            _depositWallets = depositWallets;
+            _api = api;
+        }
 
         [HttpGet]
-        public async Task<ActionResult<PaginationResponse<WalletBalanceContract>>> Get([Range(1, int.MaxValue)] int take, [AzureContinuation] string continuation) 
+        public async Task<ActionResult<PaginationResponse<WalletBalanceContract>>> Get(
+            [Range(1, int.MaxValue)] int take,
+            [AzureContinuation] string continuation) 
         {
             IEnumerable<DepositWalletBalanceEntity> balances;
 
@@ -35,7 +43,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 var addresses = depositWallets.items.Select(w => w.Address).ToArray();
 
                 continuation = depositWallets.continuation;
-                balances = (await _api.GetBalancesAsync(addresses, _assets.GetCachedAsync()))
+                balances = (await _api.GetBalancesAsync(addresses, async assetId => await _assets.GetAsync(assetId)))
                     .Select(b => new DepositWalletBalanceEntity(b.Address, b.AssetId)
                     {
                         Amount = b.Amount,
@@ -47,8 +55,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 (balances, continuation) = 
                     await _depositWallets.GetBalanceAsync(take, continuation);
             }
-
-            var assetCache = _assets.GetCachedAsync();
+            
             var result = new List<WalletBalanceContract>();
 
             foreach (var balance in balances)
@@ -56,7 +63,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 // blockchain may return unknown assets,
                 // filter out such items
 
-                var accuracy = (await assetCache(balance.AssetId))?.Accuracy;
+                var accuracy = (await _assets.GetAsync(balance.AssetId))?.Accuracy;
                 if (accuracy == null)
                 {
                     continue;

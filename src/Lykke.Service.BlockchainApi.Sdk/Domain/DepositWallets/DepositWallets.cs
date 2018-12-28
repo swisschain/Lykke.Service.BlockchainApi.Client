@@ -5,73 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using AzureStorage;
 using AzureStorage.Tables;
-using Lykke.AzureStorage.Tables;
-using Lykke.AzureStorage.Tables.Entity.Annotation;
-using Lykke.AzureStorage.Tables.Entity.ValueTypesMerging;
 using Lykke.Common.Log;
 using Lykke.SettingsReader;
 using Microsoft.WindowsAzure.Storage.Table;
 
-namespace Lykke.Service.BlockchainApi.Sdk.Domain
+namespace Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets
 {
-    public class DepositWalletEntity : TableEntity
-    {
-        public static string Partition(string address) => address;
-        public static string Row() => "";
-
-        public DepositWalletEntity() {}
-        public DepositWalletEntity(string address) => (PartitionKey, RowKey) = (Partition(address), Row());
-
-        [IgnoreProperty]
-        public string Address { get => PartitionKey; }
-    }
-
-    [ValueTypeMergingStrategyAttribute(ValueTypeMergingStrategy.UpdateAlways)]
-    public class DepositWalletBalanceEntity : AzureTableEntity
-    {
-        public static string Partition(string address) => address;
-        public static string Row(string assetId) => assetId;
-
-        public DepositWalletBalanceEntity() {}
-        public DepositWalletBalanceEntity(string address, string assetId) => (PartitionKey, RowKey) = (Partition(address), Row(assetId));
-
-        [IgnoreProperty] 
-        public string  Address     { get => PartitionKey; }
-        [IgnoreProperty] 
-        public string  AssetId     { get => RowKey; }
-        public decimal Amount      { get; set; }
-        public long    BlockNumber { get; set; }
-    }
-
-    [ValueTypeMergingStrategyAttribute(ValueTypeMergingStrategy.UpdateAlways)]
-    public class DepositActionEntity : AzureTableEntity
-    {
-        public static string Partition(string address, string assetId) => $"{address}_{assetId}";
-        public static string Row(string hash, string actionId) => $"{hash}_{actionId}";
-
-        public DepositActionEntity() { }
-        public DepositActionEntity(string address, string assetId, long blockNumber, string transactionHash, string actionId, decimal amount, Guid? operationId = null)
-        {
-            PartitionKey = Partition(address, assetId);
-            RowKey = Row(transactionHash, actionId);
-            Address = address;
-            AssetId = assetId;
-            BlockNumber = blockNumber;
-            TransactionHash = transactionHash;
-            ActionId = actionId;
-            Amount = amount;
-            OperationId = operationId;
-        }
-
-        public string  Address         { get; set; }
-        public string  AssetId         { get; set; }
-        public long    BlockNumber     { get; set; }
-        public string  TransactionHash { get; set; }
-        public string  ActionId        { get; set; }
-        public decimal Amount          { get; set; }
-        public Guid?   OperationId     { get; set; }
-    }
-
     public class DepositWalletRepository
     {
         readonly INoSQLTableStorage<DepositActionEntity> _actionStorage;
@@ -122,9 +61,9 @@ namespace Lykke.Service.BlockchainApi.Sdk.Domain
         }
 
         public async Task UpsertActionAsync(string address, string assetId, long blockNumber, string transactionHash, string actionId, decimal amount, Guid? operationId = null) =>
-            await _actionStorage.InsertOrMergeAsync(new DepositActionEntity(address, assetId, blockNumber, transactionHash, actionId, amount, operationId));
+            await _actionStorage.InsertOrReplaceAsync(new DepositActionEntity(address, assetId, blockNumber, transactionHash, actionId, amount, operationId));
 
-        public async Task RefreshBalanceAsync(IEnumerable<(string address, string assetId)> wallets)
+        public async Task RefreshBalanceAsync(IReadOnlyCollection<(string address, string assetId)> wallets)
         {
             if (wallets.Any())
             {
@@ -164,7 +103,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Domain
             if (balance.Amount == 0)
                 await _walletBalanceStorage.DeleteIfExistAsync(DepositWalletBalanceEntity.Partition(address), DepositWalletBalanceEntity.Row(assetId));
             else
-                await _walletBalanceStorage.InsertOrMergeAsync(balance);
+                await _walletBalanceStorage.InsertOrReplaceAsync(balance);
         }
 
         public async Task EnrollIfObservedAsync(IEnumerable<BlockchainAction> actions, Guid? operationId = null)

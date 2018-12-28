@@ -6,7 +6,9 @@ using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
-using Lykke.Service.BlockchainApi.Sdk.Domain;
+using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
+using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
+using Lykke.Service.BlockchainApi.Sdk.Domain.Operations;
 using Lykke.Service.BlockchainApi.Sdk.Models;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
@@ -24,8 +26,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         readonly DepositWalletRepository _depositWallets;
         readonly ILog _log;
 
-        public TransactionsController(IBlockchainApi api, OperationRepository operations,
-            AssetRepository assets, DepositWalletRepository depositWallets, ILogFactory logFactory)
+        public TransactionsController(
+            IBlockchainApi api, 
+            OperationRepository operations,
+            AssetRepository assets, 
+            DepositWalletRepository depositWallets, 
+            ILogFactory logFactory)
         {
             _api = api;
             _operations = operations;
@@ -34,15 +40,27 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             _log = logFactory.CreateLog(this);
         }
 
-        private async Task<ActionResult<BuildTransactionResponse>> Build(Guid operationId, string assetId, 
-            (string from, string fromContext, string to, string amount)[] inOuts, bool includeFee)
+        private async Task<ActionResult<BuildTransactionResponse>> Build(
+            Guid operationId, 
+            string assetId, 
+            (string from, string fromContext, string to, string amount)[] inOuts,
+            bool includeFee)
         {
             var operation = await _operations.GetAsync(operationId);
 
-            if (operation != null && 
-                operation.IsRunning()) 
+            if (operation != null)
             {
-                return Conflict($"Operation is already {operation.GetState()}");
+                if (operation.FailTime != null)
+                {
+                    if (operation.ErrorCode == null)
+                        return BadRequest(operation.Error);
+                    else
+                        return BadRequest(BlockchainErrorResponse.FromKnownError(operation.ErrorCode.Value));
+                }
+                else if (operation.SendTime != null || operation.CompletionTime != null)
+                {
+                    return Conflict($"Operation {operationId} is already {operation.GetState()}");
+                }
             }
 
             var asset = await _assets.GetAsync(assetId);
@@ -66,7 +84,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
                 var separator = _api.GetConstants().PublicAddressExtension?.Separator ?? char.MinValue;
 
-                if (actions.Any(a => a.IsReal(separator)) & 
+                // check if both action types are contained in the list
+                if (actions.Any(a => a.IsReal(separator)) & // both checks must run here
                     actions.Any(a => a.IsFake(separator)))
                 {
                     return BadRequest("Transfers must be either all fake or all real");
@@ -80,12 +99,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 }
                 else
                 {
-                    foreach (var vout in actions.GroupBy(a => a.From).Select(g => new { Address = g.Key, Amount = g.Sum(a => a.Amount) }))
+                    foreach (var writeOff in actions.GroupBy(a => a.From).Select(g => new { Address = g.Key, Amount = g.Sum(a => a.Amount) }))
                     {
-                        var balance = await _depositWallets.GetBalanceAsync(vout.Address, assetId);
+                        var balance = await _depositWallets.GetBalanceAsync(writeOff.Address, assetId);
 
                         if (balance == null ||
-                            balance.Amount < vout.Amount)
+                            balance.Amount < writeOff.Amount)
                         {
                             return BadRequest(BlockchainErrorResponse.FromKnownError(BlockchainErrorCode.NotEnoughBalance));
                         }
@@ -98,7 +117,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                // nonsense in request
+                return BadRequest(ex.ToString());
             }
             catch (ConversionException ex)
             {
@@ -106,12 +126,13 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             }
             catch (BlockchainException ex)
             {
+                // meaningful error
                 return BadRequest(BlockchainErrorResponse.FromKnownError(ex.ErrorCode));
             }
         }
 
-        private async Task<ActionResult<R>> UpdateOperationState<R>(Guid operationId, Func<OperationEntity, AssetEntity, R> toResponse) 
-            where R : BaseBroadcastedTransactionResponse
+        private async Task<ActionResult<TResponse>> UpdateOperationState<TResponse>(Guid operationId, Func<OperationEntity, AssetEntity, TResponse> toResponse) 
+            where TResponse : BaseBroadcastedTransactionResponse
         {
             var operation = await _operations.GetAsync(operationId);
 
@@ -137,17 +158,19 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 case BroadcastedTransactionState.Completed:
                     // to be able to enroll fake transfers properly
                     // we keep block number increased by one order of magnitude
-                    tx.Actions.ForEach(a => a.BlockNumber *= 10);
                     tx.BlockNumber *= 10;
+                    tx.Actions.ForEach(a => a.BlockNumber = tx.BlockNumber.Value);
+                    
                     await _depositWallets.EnrollIfObservedAsync(tx.Actions, operationId);
+
                     return toResponse(
-                        await _operations.UpdateAsync(operationId, completionTime: DateTime.Now, blockTime: tx.BlockTime, blockNumber: tx.BlockNumber),
+                        await _operations.UpdateAsync(operationId, completionTime: DateTime.UtcNow, blockTime: tx.BlockTime, blockNumber: tx.BlockNumber),
                         asset
                     );
 
                 case BroadcastedTransactionState.Failed:
                     return toResponse(
-                        await _operations.UpdateAsync(operationId, failTime: DateTime.Now, error: tx.Error, errorCode: tx.ErrorCode),
+                        await _operations.UpdateAsync(operationId, failTime: DateTime.UtcNow, error: tx.Error, errorCode: tx.ErrorCode),
                         asset
                     );
 
@@ -205,7 +228,14 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             {
                 return BadRequest("Unknown operation");
             }
-            else if (operation.IsRunning())
+            else if (operation.FailTime != null)
+            {
+                if (operation.ErrorCode == null)
+                    return BadRequest(operation.Error);
+                else
+                    return BadRequest(BlockchainErrorResponse.FromKnownError(operation.ErrorCode.Value));
+            }
+            else if (operation.SendTime != null || operation.CompletionTime != null)
             {
                 return Conflict($"Operation {request.OperationId} is already {operation.GetState()}");
             }
@@ -220,9 +250,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 var error = "Duplicated transaction hash";
                 var errorCode = BlockchainErrorCode.BuildingShouldBeRepeated;
 
-                _log.Warning(error, context: new { operationIndex, operation.OperationId });
-
-                await _operations.UpdateAsync(operation.OperationId, error: error, errorCode: errorCode);
+                await _operations.UpdateAsync(operation.OperationId, failTime: DateTime.UtcNow, error: error, errorCode: errorCode);
 
                 return BadRequest(BlockchainErrorResponse.FromKnownError(errorCode));
             }
@@ -236,7 +264,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 // we keep block number increased by one order of magnitude,
                 // we increase adjusted block number to distinguish fake and real transfers
 
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 var blockNumber = await _api.GetLastConfirmedBlockNumberAsync() * 10 + 1;
                 var actions = operation.Actions.SelectMany(a => new []
                 {
@@ -257,21 +285,26 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 var result = await _api.BroadcastTransactionAsync(signedTransaction);
 
                 await _operations.UpdateAsync(operation.OperationId, transactionHash: hash, 
-                    sendTime: DateTime.Now, broadcastResult: result);
+                    sendTime: DateTime.UtcNow, broadcastResult: result);
 
                 return Ok(hash);
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                // nonsense in request
+                return BadRequest(ex.ToString());
+            }
+            catch (BlockchainException ex) when (ex.ErrorCode == BlockchainErrorCode.AmountIsTooSmall || ex.ErrorCode == BlockchainErrorCode.BuildingShouldBeRepeated)
+            {
+                // save state to prevent double-sending
+                await _operations.UpdateAsync(operation.OperationId, transactionHash: hash,
+                    failTime: DateTime.UtcNow, error: ex.Message, errorCode: ex.ErrorCode);
+
+                return BadRequest(BlockchainErrorResponse.FromKnownError(ex.ErrorCode));
             }
             catch (BlockchainException ex)
             {
-                _log.Warning("Broadcast error", exception: ex, new { operation.OperationId, hash });
-
-                await _operations.UpdateAsync(operation.OperationId, transactionHash: hash, 
-                    error: ex.Message, errorCode: ex.ErrorCode);
-
+                // meaningful, possibly recoverable error
                 return BadRequest(BlockchainErrorResponse.FromKnownError(ex.ErrorCode));
             }
         }
@@ -347,7 +380,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             if (operation != null && 
                 operation.DeleteTime == null)
             {
-                await _operations.UpdateAsync(operationId, deleteTime: DateTime.Now);
+                await _operations.UpdateAsync(operationId, deleteTime: DateTime.UtcNow);
                 return Ok();
             }
             else
