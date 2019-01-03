@@ -4,6 +4,7 @@ using System.Reflection;
 using Autofac;
 using Lykke.AzureStorage.Tables.Entity.Metamodel;
 using Lykke.AzureStorage.Tables.Entity.Metamodel.Providers;
+using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Service.BlockchainApi.Sdk.Controllers;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
@@ -65,6 +66,17 @@ namespace Lykke.Service.BlockchainApi.Sdk
             return services;
         }
 
+        static IServiceCollection AddChaos(this IServiceCollection services,
+            ChaosSettings chaosSettings)
+        {
+            if (chaosSettings != null)
+            {
+                services.AddSingleton<IChaosKitty>(sp => new ChaosKitty(chaosSettings.StateOfChaos));
+            }
+
+            return services;
+        }
+
         /// <summary>
         /// Adds sign-service contract controllers, and registers integration sign-service implementation.
         /// </summary>
@@ -96,7 +108,9 @@ namespace Lykke.Service.BlockchainApi.Sdk
         /// <param name="apiFactory">Factory of <see cref="IBlockchainApi"/></param>
         /// <returns></returns>
         public static IServiceCollection AddBlockchainApi(this IServiceCollection services, 
-            IReloadingManager<string> connectionStringManager, Func<IServiceProvider, IBlockchainApi> apiFactory)
+            IReloadingManager<string> connectionStringManager, 
+            Func<IServiceProvider, IBlockchainApi> apiFactory,
+            ChaosSettings chaosSettings = null)
         {
             connectionStringManager = connectionStringManager ??
                 throw new ArgumentNullException(nameof(connectionStringManager));
@@ -115,7 +129,9 @@ namespace Lykke.Service.BlockchainApi.Sdk
                     typeof(CapabilitiesController),
                     typeof(ConstantsController),
                     typeof(TransactionsController)
-                });
+                })
+                .AddChaos(chaosSettings);
+
 
             return services;
         }
@@ -130,7 +146,10 @@ namespace Lykke.Service.BlockchainApi.Sdk
         /// <param name="jobFactory">Factory of <see cref="IBlockchainJob"/></param>
         /// <returns></returns>
         public static IServiceCollection AddBlockchainJob<TState>(this IServiceCollection services, 
-            IReloadingManager<string> connectionStringManager, TimeSpan period, Func<IServiceProvider, IBlockchainJob<TState>> jobFactory)
+            IReloadingManager<string> connectionStringManager, 
+            TimeSpan period, 
+            Func<IServiceProvider, IBlockchainJob<TState>> jobFactory,
+            ChaosSettings chaosSettings = null)
         {
             jobFactory = jobFactory ??
                 throw new ArgumentNullException(nameof(jobFactory));
@@ -148,9 +167,11 @@ namespace Lykke.Service.BlockchainApi.Sdk
                         sp.GetRequiredService<OperationRepository>(),
                         sp.GetRequiredService<AssetRepository>(),
                         sp.GetRequiredService<StateRepository<TState>>(),
-                        sp.GetRequiredService<IBlockchainJob<TState>>()
+                        sp.GetRequiredService<IBlockchainJob<TState>>(),
+                        sp.GetService<IChaosKitty>()
                     )
-                );
+                )
+                .AddChaos(chaosSettings);
 
             return services;
         }

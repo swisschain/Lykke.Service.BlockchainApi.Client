@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common;
+using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
@@ -17,15 +18,17 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
         readonly AssetRepository _assets;
         readonly StateRepository<TState> _state;
         readonly IBlockchainJob<TState> _job;
+        readonly IChaosKitty _chaosKitty;
 
         public DepositHandler(TimeSpan period, ILogFactory logFactory, DepositWalletRepository depositWallets, OperationRepository operations, AssetRepository assets,
-            StateRepository<TState> state, IBlockchainJob<TState> job) : base(period, logFactory, nameof(DepositHandler<TState>))
+            StateRepository<TState> state, IBlockchainJob<TState> job, IChaosKitty chaosKitty = null) : base(period, logFactory, nameof(DepositHandler<TState>))
         {
             _depositWallets = depositWallets;
             _operations = operations;
             _assets = assets;
             _state = state;
             _job = job;
+            _chaosKitty = chaosKitty;
         }
 
         public override async Task Execute()
@@ -54,7 +57,11 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
 
             await _depositWallets.EnrollIfObservedAsync(deposits);
 
+            _chaosKitty?.Meow($"{nameof(Execute)}_Enroll");
+
             await _state.UpsertAsync(trace.state);
+
+            _chaosKitty?.Meow($"{nameof(Execute)}_UpdateState");
         }
     }
 }

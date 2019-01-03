@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Lykke.Common.Chaos;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Balances;
 using Lykke.Service.BlockchainApi.Sdk.Domain;
@@ -19,12 +20,14 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         readonly AssetRepository _assets;
         readonly DepositWalletRepository _depositWallets;
         readonly IBlockchainApi _api;
+        readonly IChaosKitty _chaosKitty;
 
-        public BalancesController(AssetRepository assets, DepositWalletRepository depositWallets, IBlockchainApi api)
+        public BalancesController(AssetRepository assets, DepositWalletRepository depositWallets, IBlockchainApi api, IChaosKitty chaosKitty = null)
         {
             _assets = assets;
             _depositWallets = depositWallets;
             _api = api;
+            _chaosKitty = chaosKitty;
         }
 
         [HttpGet]
@@ -85,8 +88,13 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         public async Task<ActionResult> Observe(string address)
         {
             if (await _depositWallets.TryObserveAsync(address))
-            {   
+            {
+                _chaosKitty?.Meow($"{nameof(Observe)}_Data");
+
                 await _api.ObserveAddressAsync(address);
+
+                _chaosKitty?.Meow($"{nameof(Observe)}_Blockchain");
+
                 return Ok();
             }
             else
@@ -100,7 +108,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         {
             if (await _depositWallets.TryDeleteObservationAsync(address))
             {
+                _chaosKitty?.Meow($"{nameof(DeleteObservation)}_Data");
+
                 await _api.DeleteAddressObservationAsync(address);
+
+                _chaosKitty?.Meow($"{nameof(DeleteObservation)}_Blockchain");
+
                 return Ok();
             }
             else

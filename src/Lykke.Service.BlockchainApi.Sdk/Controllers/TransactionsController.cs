@@ -2,8 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Common;
-using Common.Log;
-using Lykke.Common.Log;
+using Lykke.Common.Chaos;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
@@ -24,20 +23,20 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         readonly OperationRepository _operations;
         readonly AssetRepository _assets;
         readonly DepositWalletRepository _depositWallets;
-        readonly ILog _log;
+        readonly IChaosKitty _chaosKitty;
 
         public TransactionsController(
             IBlockchainApi api, 
             OperationRepository operations,
             AssetRepository assets, 
             DepositWalletRepository depositWallets, 
-            ILogFactory logFactory)
+            IChaosKitty chaosKitty = null)
         {
             _api = api;
             _operations = operations;
             _assets = assets;
             _depositWallets = depositWallets;
-            _log = logFactory.CreateLog(this);
+            _chaosKitty = chaosKitty;
         }
 
         private async Task<ActionResult<BuildTransactionResponse>> Build(
@@ -104,6 +103,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
                 await _operations.UpsertAsync(operationId, assetId, actions, includeFee, fee, expiration);
 
+                _chaosKitty?.Meow(nameof(Build));
+
                 return new BuildTransactionResponse { TransactionContext = tx };
             }
             catch (ArgumentException ex)
@@ -153,6 +154,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                     tx.Actions.ForEach(a => a.BlockNumber = tx.BlockNumber.Value);
                     
                     await _depositWallets.EnrollIfObservedAsync(tx.Actions, operationId);
+
+                    _chaosKitty?.Meow(nameof(UpdateOperationState));
 
                     return toResponse(
                         await _operations.UpdateAsync(operationId, completionTime: DateTime.UtcNow, blockTime: tx.BlockTime, blockNumber: tx.BlockNumber),
@@ -243,6 +246,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
                 await _operations.UpdateAsync(operation.OperationId, failTime: DateTime.UtcNow, error: error, errorCode: errorCode);
 
+                _chaosKitty?.Meow($"{nameof(Broadcast)}_DuplicatedHash)");
+
                 return BadRequest(BlockchainErrorResponse.FromKnownError(errorCode));
             }
 
@@ -265,8 +270,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
                 await _depositWallets.EnrollIfObservedAsync(actions, operation.OperationId);
 
+                _chaosKitty?.Meow($"{nameof(Broadcast)}_Fake_Enroll)");
+
                 await _operations.UpdateAsync(operation.OperationId, transactionHash: hash, 
                     sendTime: now, completionTime: now, blockTime: now, blockNumber: blockNumber);
+
+                _chaosKitty?.Meow($"{nameof(Broadcast)}_Fake_Update)");
 
                 return Ok(hash);
             }
@@ -275,8 +284,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             {
                 var result = await _api.BroadcastTransactionAsync(signedTransaction);
 
+                _chaosKitty?.Meow($"{nameof(Broadcast)}_Real_Broadcast)");
+
                 await _operations.UpdateAsync(operation.OperationId, transactionHash: hash, 
                     sendTime: DateTime.UtcNow, broadcastResult: result);
+
+                _chaosKitty?.Meow($"{nameof(Broadcast)}_Real_Update)");
 
                 return Ok(hash);
             }
@@ -290,6 +303,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 // save state to prevent double-sending
                 await _operations.UpdateAsync(operation.OperationId, transactionHash: hash,
                     failTime: DateTime.UtcNow, error: ex.Message, errorCode: ex.ErrorCode);
+
+                _chaosKitty?.Meow($"{nameof(Broadcast)}_Real_Fail)");
 
                 return BadRequest(BlockchainErrorResponse.FromKnownError(ex.ErrorCode));
             }
@@ -372,6 +387,9 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 operation.DeleteTime == null)
             {
                 await _operations.UpdateAsync(operationId, deleteTime: DateTime.UtcNow);
+
+                _chaosKitty?.Meow(nameof(DeleteBroadcasted));
+
                 return Ok();
             }
             else
