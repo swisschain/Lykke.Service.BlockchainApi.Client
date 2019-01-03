@@ -48,19 +48,10 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         {
             var operation = await _operations.GetAsync(operationId);
 
-            if (operation != null)
+            if (operation?.SendTime != null ||
+                operation?.FailTime != null)
             {
-                if (operation.FailTime != null)
-                {
-                    if (operation.ErrorCode == null)
-                        return BadRequest(operation.Error);
-                    else
-                        return BadRequest(BlockchainErrorResponse.FromKnownError(operation.ErrorCode.Value));
-                }
-                else if (operation.SendTime != null || operation.CompletionTime != null)
-                {
-                    return Conflict($"Operation {operationId} is already {operation.GetState()}");
-                }
+                return Conflict($"Operation {operationId} is already {operation.GetState()}");
             }
 
             var asset = await _assets.GetAsync(assetId);
@@ -84,11 +75,11 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
                 var separator = _api.GetConstants().PublicAddressExtension?.Separator ?? char.MinValue;
 
-                // check if both action types are contained in the list
-                if (actions.Any(a => a.IsReal(separator)) & // both checks must run here
-                    actions.Any(a => a.IsFake(separator)))
+                // fail if both action types are contained in the list,
+                // or if the list is empty
+                if (!(actions.Any(a => a.IsReal(separator)) ^ actions.Any(a => a.IsFake(separator))))
                 {
-                    return BadRequest("Transfers must be either all fake or all real");
+                    return BadRequest("Transfers must not be empty and must be either all fake or all real");
                 }
 
                 var (tx, fee, expiration) = (Constants.DUMMY_TX, 0M, 0L);
