@@ -8,7 +8,6 @@ using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Operations;
-using Lykke.Service.BlockchainApi.Sdk.Models;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
