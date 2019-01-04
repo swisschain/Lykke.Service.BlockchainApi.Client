@@ -1,4 +1,4 @@
-namespace Lykke.Service.BlockchainApi.Sdk.Models
+namespace Lykke.Service.BlockchainApi.Sdk
 {
     public class Constants
     {

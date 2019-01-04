@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
-using Lykke.Service.BlockchainApi.Sdk.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
