@@ -17,7 +17,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         {
             if (!_api.AddressIsValid(address))
             {
-                return BadRequest($"Address [{address}] is invalid");
+                return BadRequest("'address' must be valid blockchain address");
             }
 
             return _api.GetExplorerUrl(address);

@@ -6,10 +6,9 @@ using CommonUtils = Common.Utils;
 
 namespace Lykke.Service.BlockchainApi.Sdk.Models
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
-    public class AzureContinuationAttribute : ValidationAttribute
+    public static class AzureContinuationValidator
     {
-        public override bool IsValid(object value)
+        public static bool IsValid(string value)
         {
             if (value == null)
             {
@@ -18,7 +17,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Models
 
             try
             {
-                JsonConvert.DeserializeObject<TableContinuationToken>(CommonUtils.HexToString((string)value));
+                JsonConvert.DeserializeObject<TableContinuationToken>(CommonUtils.HexToString(value));
                 return true;
             }
             catch 

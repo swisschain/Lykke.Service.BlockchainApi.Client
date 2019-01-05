@@ -2,12 +2,14 @@ using System;
 using System.Linq;
 using Lykke.AzureStorage.Tables;
 using Lykke.AzureStorage.Tables.Entity.Annotation;
+using Lykke.AzureStorage.Tables.Entity.ValueTypesMerging;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Lykke.Service.BlockchainApi.Sdk.Domain.Operations
 {
+    [ValueTypeMergingStrategy(ValueTypeMergingStrategy.UpdateAlways)]
     public class OperationEntity : AzureTableEntity
     {
         public static string Partition(Guid id) => id.ToString();

@@ -37,7 +37,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             {
                 try
                 {
-                    result = await signService.SignTransactionAsync(request.TransactionContext, request.PrivateKeys);
+                    result = await signService.SignTransactionAsync(request.TransactionContext.Base64ToString(), request.PrivateKeys);
                 }
                 catch (ArgumentException ex)
                 {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.Chaos;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Balances;
@@ -30,10 +30,18 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<PaginationResponse<WalletBalanceContract>>> Get(
-            [Range(1, int.MaxValue)] int take,
-            [AzureContinuation] string continuation) 
+        public async Task<ActionResult<PaginationResponse<WalletBalanceContract>>> Get(int take, string continuation) 
         {
+            if (take <= 0)
+            {
+                return BadRequest("'take' must be grater than zero");
+            }
+
+            if (!AzureContinuationValidator.IsValid(continuation))
+            {
+                return BadRequest("'continuation' must be null or valid Azure continuation token");
+            }
+
             IEnumerable<DepositWalletBalanceEntity> balances;
 
             if (_api.CanGetBalances)
@@ -86,6 +94,11 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         [HttpPost("{address}/observation")]
         public async Task<ActionResult> Observe(string address)
         {
+            if (!_api.AddressIsValid(address))
+            {
+                return BadRequest("'address' must be valid blockchain address");
+            }
+
             if (await _depositWallets.TryObserveAsync(address))
             {
                 _chaosKitty?.Meow($"{nameof(Observe)}_Data");
@@ -105,6 +118,11 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         [HttpDelete("{address}/observation")]
         public async Task<ActionResult> DeleteObservation(string address)
         {
+            if (!_api.AddressIsValid(address))
+            {
+                return BadRequest("'address' must be valid blockchain address");
+            }
+            
             if (await _depositWallets.TryDeleteObservationAsync(address))
             {
                 _chaosKitty?.Meow($"{nameof(DeleteObservation)}_Data");
