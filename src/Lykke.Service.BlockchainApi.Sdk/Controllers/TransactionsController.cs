@@ -104,7 +104,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
                 _chaosKitty?.Meow(nameof(Build));
 
-                return new BuildTransactionResponse { TransactionContext = tx };
+                return new BuildTransactionResponse { TransactionContext = tx.ToBase64() };
             }
             catch (ArgumentException ex)
             {

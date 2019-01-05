@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Assets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
@@ -18,10 +18,18 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         public AssetsController(AssetRepository assets) => _assets = assets;
         
         [HttpGet]
-        public async Task<ActionResult<PaginationResponse<AssetContract>>> Get(
-            [Range(1, int.MaxValue)] int take, 
-            [AzureContinuation] string continuation)
+        public async Task<ActionResult<PaginationResponse<AssetContract>>> Get(int take, string continuation)
         {
+            if (take <= 0)
+            {
+                return BadRequest("'take' must be grater than zero");
+            }
+
+            if (!AzureContinuationValidator.IsValid(continuation))
+            {
+                return BadRequest("'continuation' must be null or valid Azure continuation token");
+            }
+
             var chunk = await _assets.GetAsync(take, continuation);
 
             return PaginationResponse.From(
