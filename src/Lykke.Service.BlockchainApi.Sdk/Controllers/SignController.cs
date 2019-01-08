@@ -22,7 +22,9 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 return BadRequest("Invalid private key(s)");
             }
 
-            if (request.TransactionContext == Constants.DUMMY_TX && 
+            var tx = request.TransactionContext.Base64ToString();
+
+            if (tx == Constants.DUMMY_TX && 
                 request.PrivateKeys.Any(k => !signService.ValidateHotWalletPrivateKey(k)))
             {
                 return BadRequest("Invalid private key(s)");
@@ -33,11 +35,11 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 signedTransaction: Constants.DUMMY_TX
             );
 
-            if (request.TransactionContext != Constants.DUMMY_TX)
+            if (tx != Constants.DUMMY_TX)
             {
                 try
                 {
-                    result = await signService.SignTransactionAsync(request.TransactionContext.Base64ToString(), request.PrivateKeys);
+                    result = await signService.SignTransactionAsync(tx, request.PrivateKeys);
                 }
                 catch (ArgumentException ex)
                 {
