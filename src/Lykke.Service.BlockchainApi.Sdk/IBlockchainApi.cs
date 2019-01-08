@@ -114,5 +114,16 @@ namespace Lykke.Service.BlockchainApi.Sdk
         /// <param name="address">Blockchain address.</param>
         /// <returns></returns>
         Task DeleteAddressObservationAsync(string address);
+
+        /// <summary>
+        /// Performs direct transfer for testing purposes.
+        /// </summary>
+        /// <param name="fromAddress">Withdrawal address.</param>
+        /// <param name="fromPrivateKey">Withdrawal address private key.</param>
+        /// <param name="toAddress">Deposit address.</param>
+        /// <param name="asset">Asset to transfer.</param>
+        /// <param name="amount">Amount to transfer.</param>
+        /// <returns>Any meaniningful serializable result.</returns>
+        Task<object> TestingTransfer(string fromAddress, string fromPrivateKey, string toAddress, IAsset asset, decimal amount);
     }
 }
