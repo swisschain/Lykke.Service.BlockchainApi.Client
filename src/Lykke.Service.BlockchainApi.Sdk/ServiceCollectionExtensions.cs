@@ -128,6 +128,7 @@ namespace Lykke.Service.BlockchainApi.Sdk
                     typeof(BalancesController),
                     typeof(CapabilitiesController),
                     typeof(ConstantsController),
+                    typeof(TestingController),
                     typeof(TransactionsController)
                 })
                 .AddChaos(chaosSettings);
