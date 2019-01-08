@@ -37,12 +37,28 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 return BadRequest("Unknown asset");
             }
 
+            var amount = 0M;
+
+            try
+            {
+                amount = Conversions.CoinsFromContract(request.Amount, asset.Accuracy);
+            }
+            catch (ConversionException)
+            {
+                return BadRequest("Invalid amount format");
+            }
+
+            if (amount < 0 || !_api.AddressIsValid(request.FromAddress) || !_api.AddressIsValid(request.ToAddress))
+            {
+                return BadRequest("Invalid address(es) and/or negative amount");
+            }
+
             var result = await _api.TestingTransfer(
                 request.FromAddress, 
                 request.FromPrivateKey, 
                 request.ToAddress, 
                 asset,
-                Conversions.CoinsFromContract(request.Amount, asset.Accuracy));
+                amount);
 
             return Ok(result);
         }
