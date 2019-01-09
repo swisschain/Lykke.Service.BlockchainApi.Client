@@ -109,7 +109,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             catch (ArgumentException ex)
             {
                 // nonsense in request
-                return BadRequest(BlockchainErrorResponse.Create(ex.ToString()));
+                return BadRequest(BlockchainErrorResponse.Create(ex.ToAsyncString()));
             }
             catch (ConversionException ex)
             {
