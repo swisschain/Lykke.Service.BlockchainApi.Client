@@ -22,12 +22,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         {
             if (take <= 0)
             {
-                return BadRequest("'take' must be grater than zero");
+                return BadRequest(BlockchainErrorResponse.Create("'take' must be grater than zero"));
             }
 
             if (!AzureContinuationValidator.IsValid(continuation))
             {
-                return BadRequest("'continuation' must be null or valid Azure continuation token");
+                return BadRequest(BlockchainErrorResponse.Create("'continuation' must be null or valid Azure continuation token"));
             }
 
             var chunk = await _assets.GetAsync(take, continuation);

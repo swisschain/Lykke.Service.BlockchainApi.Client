@@ -34,7 +34,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
             if (asset == null)
             {
-                return BadRequest("Unknown asset");
+                return BadRequest(BlockchainErrorResponse.Create("Unknown asset"));
             }
 
             var amount = 0M;
@@ -45,12 +45,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             }
             catch (ConversionException)
             {
-                return BadRequest("Invalid amount format");
+                return BadRequest(BlockchainErrorResponse.Create("Invalid amount format"));
             }
 
             if (amount < 0 || !_api.AddressIsValid(request.FromAddress) || !_api.AddressIsValid(request.ToAddress))
             {
-                return BadRequest("Invalid address(es) and/or negative amount");
+                return BadRequest(BlockchainErrorResponse.Create("Invalid address(es) and/or negative amount"));
             }
 
             var result = await _api.TestingTransfer(
