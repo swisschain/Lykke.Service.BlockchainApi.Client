@@ -30,9 +30,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 return StatusCode(501);
             }               
 
-            var asset = !string.IsNullOrEmpty(request.AssetId)
-                ? await _assets.GetAsync(request.AssetId)
-                : null;
+            var asset = await _assets.GetAsync(request.AssetId);
 
             if (asset == null)
             {
