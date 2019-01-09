@@ -2,16 +2,20 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Autofac;
+using FluentValidation;
 using Lykke.AzureStorage.Tables.Entity.Metamodel;
 using Lykke.AzureStorage.Tables.Entity.Metamodel.Providers;
 using Lykke.Common.Chaos;
 using Lykke.Common.Log;
+using Lykke.Service.BlockchainApi.Contract.Testing;
+using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Lykke.Service.BlockchainApi.Sdk.Controllers;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Operations;
 using Lykke.Service.BlockchainApi.Sdk.Domain.State;
 using Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers;
+using Lykke.Service.BlockchainApi.Sdk.Validation;
 using Lykke.SettingsReader;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.DependencyInjection;
@@ -95,7 +99,8 @@ namespace Lykke.Service.BlockchainApi.Sdk
                 {
                     typeof(SignController),
                     typeof(WalletsController)
-                });
+                })
+                .AddTransient<IValidator<SignTransactionRequest>, SignTransactionRequestValidator>();
 
             return services;
         }
@@ -131,8 +136,12 @@ namespace Lykke.Service.BlockchainApi.Sdk
                     typeof(TestingController),
                     typeof(TransactionsController)
                 })
-                .AddChaos(chaosSettings);
-
+                .AddChaos(chaosSettings)
+                .AddTransient<IValidator<BuildSingleTransactionRequest>, BuildSingleTransactionRequestValidator>()
+                .AddTransient<IValidator<BuildTransactionWithManyInputsRequest>, BuildTransactionWithManyInputsRequestValidator>()
+                .AddTransient<IValidator<BuildTransactionWithManyOutputsRequest>, BuildTransactionWithManyOutputsRequestValidator>()
+                .AddTransient<IValidator<BroadcastTransactionRequest>, BroadcastTransactionRequestValidator>()
+                .AddTransient<IValidator<TestingTransferRequest>, TestingTransferRequestValidator>();
 
             return services;
         }
