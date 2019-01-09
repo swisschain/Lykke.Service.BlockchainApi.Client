@@ -44,7 +44,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 }
                 catch (ArgumentException ex)
                 {
-                    return BadRequest(BlockchainErrorResponse.Create(ex.Message));
+                    return BadRequest(BlockchainErrorResponse.Create(ex.ToAsyncString()));
                 }
             }
 
