@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AsyncFriendlyStackTrace;
 using Common;
+using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -19,7 +21,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             if (request.PrivateKeys.Count == 0 || 
                 request.PrivateKeys.Any(k => !signService.ValidatePrivateKey(k)))
             {
-                return BadRequest("Invalid private key(s)");
+                return BadRequest(BlockchainErrorResponse.Create("Invalid private key(s)"));
             }
 
             var tx = request.TransactionContext.Base64ToString();
@@ -27,7 +29,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             if (tx == Constants.DUMMY_TX && 
                 request.PrivateKeys.Any(k => !signService.ValidateHotWalletPrivateKey(k)))
             {
-                return BadRequest("Invalid private key(s)");
+                return BadRequest(BlockchainErrorResponse.Create("Invalid private key(s)"));
             }
 
             var result = (
@@ -43,7 +45,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 }
                 catch (ArgumentException ex)
                 {
-                    return BadRequest(ex.Message);
+                    return BadRequest(BlockchainErrorResponse.Create(ex.ToAsyncString()));
                 }
             }
 

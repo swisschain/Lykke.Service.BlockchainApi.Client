@@ -34,12 +34,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         {
             if (take <= 0)
             {
-                return BadRequest("'take' must be grater than zero");
+                return BadRequest(BlockchainErrorResponse.Create("'take' must be grater than zero"));
             }
 
             if (!AzureContinuationValidator.IsValid(continuation))
             {
-                return BadRequest("'continuation' must be null or valid Azure continuation token");
+                return BadRequest(BlockchainErrorResponse.Create("'continuation' must be null or valid Azure continuation token"));
             }
 
             IEnumerable<DepositWalletBalanceEntity> balances;
@@ -96,7 +96,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         {
             if (!_api.AddressIsValid(address))
             {
-                return BadRequest("'address' must be valid blockchain address");
+                return BadRequest(BlockchainErrorResponse.Create("'address' must be valid blockchain address"));
             }
 
             if (await _depositWallets.TryObserveAsync(address))
@@ -120,7 +120,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         {
             if (!_api.AddressIsValid(address))
             {
-                return BadRequest("'address' must be valid blockchain address");
+                return BadRequest(BlockchainErrorResponse.Create("'address' must be valid blockchain address"));
             }
             
             if (await _depositWallets.TryDeleteObservationAsync(address))

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AsyncFriendlyStackTrace;
 using Common;
 using Lykke.Common.Chaos;
 using Lykke.Service.BlockchainApi.Contract;
@@ -56,7 +57,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
             if (asset == null)
             {
-                return BadRequest("Unknown asset");
+                return BadRequest(BlockchainErrorResponse.Create("Unknown asset"));
             }
 
             try
@@ -68,7 +69,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
                 if (actions.Any(a => a.Amount <= 0 || !_api.AddressIsValid(a.From) || !_api.AddressIsValid(a.To)))
                 {
-                    return BadRequest("Invalid address(es) and/or negative amount(s)");
+                    return BadRequest(BlockchainErrorResponse.Create("Invalid address(es) and/or negative amount(s)"));
                 }
 
                 var separator = _api.GetConstants().PublicAddressExtension?.Separator ?? char.MinValue;
@@ -77,7 +78,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 // or if the list is empty
                 if (!(actions.Any(a => a.IsReal(separator)) ^ actions.Any(a => a.IsFake(separator))))
                 {
-                    return BadRequest("Transfers must not be empty and must be either all fake or all real");
+                    return BadRequest(BlockchainErrorResponse.Create("Transfers must not be empty and must be either all fake or all real"));
                 }
 
                 var (tx, fee, expiration) = (Constants.DUMMY_TX, 0M, 0L);
@@ -109,11 +110,11 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             catch (ArgumentException ex)
             {
                 // nonsense in request
-                return BadRequest(ex.ToString());
+                return BadRequest(BlockchainErrorResponse.Create(ex.ToAsyncString()));
             }
             catch (ConversionException ex)
             {
-                return BadRequest("Invalid amount(s)");
+                return BadRequest(BlockchainErrorResponse.Create("Invalid amount(s)"));
             }
             catch (BlockchainException ex)
             {
@@ -219,12 +220,12 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             var operation = await _operations.GetAsync(request.OperationId);
             if (operation == null)
             {
-                return BadRequest("Unknown operation");
+                return BadRequest(BlockchainErrorResponse.Create("Unknown operation"));
             }
             else if (operation.FailTime != null)
             {
                 if (operation.ErrorCode == null)
-                    return BadRequest(operation.Error);
+                    return BadRequest(BlockchainErrorResponse.Create(operation.Error));
                 else
                     return BadRequest(BlockchainErrorResponse.FromKnownError(operation.ErrorCode.Value));
             }
@@ -295,7 +296,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             catch (ArgumentException ex)
             {
                 // nonsense in request
-                return BadRequest(ex.ToString());
+                return BadRequest(BlockchainErrorResponse.Create(ex.ToAsyncString()));
             }
             catch (BlockchainException ex) when (ex.ErrorCode == BlockchainErrorCode.AmountIsTooSmall || ex.ErrorCode == BlockchainErrorCode.BuildingShouldBeRepeated)
             {
