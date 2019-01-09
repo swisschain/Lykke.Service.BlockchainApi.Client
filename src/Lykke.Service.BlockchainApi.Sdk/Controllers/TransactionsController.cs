@@ -52,7 +52,9 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 return Conflict($"Operation {operationId} is already {operation.GetState()}");
             }
 
-            var asset = await _assets.GetAsync(assetId);
+            var asset = !string.IsNullOrEmpty(assetId)
+                ? await _assets.GetAsync(assetId)
+                : null;
 
             if (asset == null)
             {
