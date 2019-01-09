@@ -5,6 +5,7 @@ using Autofac;
 using FluentValidation;
 using Lykke.AzureStorage.Tables.Entity.Metamodel;
 using Lykke.AzureStorage.Tables.Entity.Metamodel.Providers;
+using Lykke.Common.ApiLibrary.Contract;
 using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Service.BlockchainApi.Contract.Testing;
@@ -17,6 +18,7 @@ using Lykke.Service.BlockchainApi.Sdk.Domain.State;
 using Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers;
 using Lykke.Service.BlockchainApi.Sdk.Validation;
 using Lykke.SettingsReader;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -81,6 +83,17 @@ namespace Lykke.Service.BlockchainApi.Sdk
             return services;
         }
 
+        static IServiceCollection ConfigureInvalidModelStateResponse(this IServiceCollection services)
+        {
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = actionContext =>
+                    new BadRequestObjectResult(ErrorResponseFactory.Create(actionContext.ModelState));
+            });
+
+            return services;
+        }
+
         /// <summary>
         /// Adds sign-service contract controllers, and registers integration sign-service implementation.
         /// </summary>
@@ -100,7 +113,8 @@ namespace Lykke.Service.BlockchainApi.Sdk
                     typeof(SignController),
                     typeof(WalletsController)
                 })
-                .AddTransient<IValidator<SignTransactionRequest>, SignTransactionRequestValidator>();
+                .AddTransient<IValidator<SignTransactionRequest>, SignTransactionRequestValidator>()
+                .ConfigureInvalidModelStateResponse();
 
             return services;
         }
@@ -141,7 +155,8 @@ namespace Lykke.Service.BlockchainApi.Sdk
                 .AddTransient<IValidator<BuildTransactionWithManyInputsRequest>, BuildTransactionWithManyInputsRequestValidator>()
                 .AddTransient<IValidator<BuildTransactionWithManyOutputsRequest>, BuildTransactionWithManyOutputsRequestValidator>()
                 .AddTransient<IValidator<BroadcastTransactionRequest>, BroadcastTransactionRequestValidator>()
-                .AddTransient<IValidator<TestingTransferRequest>, TestingTransferRequestValidator>();
+                .AddTransient<IValidator<TestingTransferRequest>, TestingTransferRequestValidator>()
+                .ConfigureInvalidModelStateResponse();
 
             return services;
         }
