@@ -295,7 +295,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             catch (ArgumentException ex)
             {
                 // nonsense in request
-                return BadRequest(BlockchainErrorResponse.Create(ex.ToString()));
+                return BadRequest(BlockchainErrorResponse.Create(ex.ToAsyncString()));
             }
             catch (BlockchainException ex) when (ex.ErrorCode == BlockchainErrorCode.AmountIsTooSmall || ex.ErrorCode == BlockchainErrorCode.BuildingShouldBeRepeated)
             {
