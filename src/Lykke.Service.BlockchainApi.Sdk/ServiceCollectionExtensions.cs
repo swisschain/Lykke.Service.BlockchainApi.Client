@@ -15,6 +15,7 @@ using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Operations;
 using Lykke.Service.BlockchainApi.Sdk.Domain.State;
+using Lykke.Service.BlockchainApi.Sdk.Models;
 using Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers;
 using Lykke.Service.BlockchainApi.Sdk.Validation;
 using Lykke.SettingsReader;
@@ -155,6 +156,7 @@ namespace Lykke.Service.BlockchainApi.Sdk
                 .AddTransient<IValidator<BuildTransactionWithManyInputsRequest>, BuildTransactionWithManyInputsRequestValidator>()
                 .AddTransient<IValidator<BuildTransactionWithManyOutputsRequest>, BuildTransactionWithManyOutputsRequestValidator>()
                 .AddTransient<IValidator<BroadcastTransactionRequest>, BroadcastTransactionRequestValidator>()
+                .AddTransient<IValidator<CreateAssetRequest>, CreateAssetRequestValidator>()
                 .AddTransient<IValidator<TestingTransferRequest>, TestingTransferRequestValidator>()
                 .ConfigureInvalidModelStateResponse();
 
