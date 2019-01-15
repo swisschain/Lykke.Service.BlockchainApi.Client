@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Addresses;
+using Lykke.Service.BlockchainApi.Sdk.Validation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.BlockchainApi.Sdk.Controllers
@@ -16,7 +17,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         [HttpGet("{address}/explorer-url")]
         public ActionResult<string[]> GetExplorerUrl(string address) 
         {
-            if (!_api.AddressIsValid(address))
+            if (!Validators.ValidateAzureKey(address) || 
+                !_api.AddressIsValid(address))
             {
                 return BadRequest(BlockchainErrorResponse.Create("'address' must be valid blockchain address"));
             }
@@ -29,7 +31,8 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
         {
             return new AddressValidationResponse 
             {
-                IsValid = _api.AddressIsValid(address) && 
+                IsValid = Validators.ValidateAzureKey(address) &&
+                    _api.AddressIsValid(address) &&
                     await _api.AddressIsExistAsync(address)
             };
         }
