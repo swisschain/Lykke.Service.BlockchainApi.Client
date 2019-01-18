@@ -4,5 +4,6 @@ namespace Lykke.Service.BlockchainApi.Sdk
     {
         public const string DUMMY_TX = "IDKFA";
         public const string DUMMY_PRIVATE_KEY = "IDDQD";
+        public const string DUMMY_HASH = "IDCLIP";
     }
 }

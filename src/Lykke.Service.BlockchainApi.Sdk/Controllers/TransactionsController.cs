@@ -236,6 +236,13 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
 
             var (hash, signedTransaction) = JsonConvert.DeserializeObject<(string, string)>(request.SignedTransaction.Base64ToString());
 
+            // for now operation may be processed by multiple threads,
+            // if process is parallelized before signing then simulated transaction may be broadcasted 
+            // multiple times with different hashes (due to using timestamp as transaction hash);
+            // to prevent double spending for simulated transactions we use operation ID instead of timestamp as transaction hash;
+            if (hash == Constants.DUMMY_HASH)
+                hash = operation.OperationId.ToString("N"); // use plain format to make it more hash-y
+
             // prevent collisions
             var operationIndex = await _operations.GetOperationIndexAsync(hash);
             if (operationIndex != null && 
