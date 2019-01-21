@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Common;
+using Common.Log;
 using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Operations;
 using Lykke.Service.BlockchainApi.Sdk.Domain.State;
+using Lykke.Service.BlockchainApi.Sdk.Validation;
 
 namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
 {
@@ -19,6 +22,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
         readonly StateRepository<TState> _state;
         readonly IBlockchainJob<TState> _job;
         readonly IChaosKitty _chaosKitty;
+        readonly ILog _log;
 
         public DepositHandler(TimeSpan period, ILogFactory logFactory, DepositWalletRepository depositWallets, OperationRepository operations, AssetRepository assets,
             StateRepository<TState> state, IBlockchainJob<TState> job, IChaosKitty chaosKitty = null) : base(period, logFactory, nameof(DepositHandler<TState>))
@@ -29,6 +33,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
             _state = state;
             _job = job;
             _chaosKitty = chaosKitty;
+            _log = logFactory.CreateLog(this);
         }
 
         public override async Task Execute()
@@ -54,6 +59,23 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
                 else
                     deposits.Add(action);
             }
+
+            // filter out actions with invalid Azure symbols
+            deposits = deposits
+                .Where(a =>
+                {
+                    var containsInvalidSymbols = 
+                        !Validators.ValidateAzureKey(a.ActionId) || 
+                        !Validators.ValidateAzureKey(a.Address) || 
+                        !Validators.ValidateAzureKey(a.AssetId) || 
+                        !Validators.ValidateAzureKey(a.TransactionHash);
+
+                    if (containsInvalidSymbols)
+                        _log.Warning("Invalid Azure symbols in action", context: a);
+
+                    return !containsInvalidSymbols;
+                })
+                .ToList();
 
             await _depositWallets.EnrollIfObservedAsync(deposits);
 

@@ -13,7 +13,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Validation
 
             RuleFor(r => r.SignedTransaction)
                 .NotEmpty()
-                .Must(BeBase64Encoded).WithMessage("Must be base64 encoded");
+                .Must(ValidateBase64).WithMessage(MustBeBase64Encoded);
         }
     }
 }

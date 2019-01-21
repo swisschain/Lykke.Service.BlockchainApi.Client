@@ -33,7 +33,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
             }
 
             var result = (
-                hash: DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString("D"),
+                hash: Constants.DUMMY_HASH,
                 signedTransaction: Constants.DUMMY_TX
             );
 

@@ -5,6 +5,7 @@ using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Assets;
 using Lykke.Service.BlockchainApi.Sdk.Domain.Assets;
 using Lykke.Service.BlockchainApi.Sdk.Models;
+using Lykke.Service.BlockchainApi.Sdk.Validation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.BlockchainApi.Sdk.Controllers
@@ -25,7 +26,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Controllers
                 return BadRequest(BlockchainErrorResponse.Create("'take' must be grater than zero"));
             }
 
-            if (!AzureContinuationValidator.IsValid(continuation))
+            if (!Validators.ValidateAzureContinuation(continuation))
             {
                 return BadRequest(BlockchainErrorResponse.Create("'continuation' must be null or valid Azure continuation token"));
             }

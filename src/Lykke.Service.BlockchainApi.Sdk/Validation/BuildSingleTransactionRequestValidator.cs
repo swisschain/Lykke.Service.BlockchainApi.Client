@@ -1,5 +1,6 @@
 using FluentValidation;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
+using static Lykke.Service.BlockchainApi.Sdk.Validation.Validators;
 
 namespace Lykke.Service.BlockchainApi.Sdk.Validation
 {
@@ -14,13 +15,15 @@ namespace Lykke.Service.BlockchainApi.Sdk.Validation
                 .NotEmpty();
 
             RuleFor(r => r.FromAddress)
-                .NotEmpty();
+                .NotEmpty()
+                .Must(ValidateAzureKey).WithMessage(MustNotContainInvalidAzureSymbols);
 
             RuleFor(r => r.OperationId)
                 .NotEmpty();
 
             RuleFor(r => r.ToAddress)
-                .NotEmpty();
+                .NotEmpty()
+                .Must(ValidateAzureKey).WithMessage(MustNotContainInvalidAzureSymbols);
         }
     }
 }
