@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.RegularExpressions;
 using Common;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -8,7 +9,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.Validation
 {
     public static class Validators
     {
-        public const string MustNotContainInvalidAzureSymbols = "Must not contain invalid Azure symbols";
+        public const string MustNotContainInvalidAzureSymbols = "Must not contain invalid Azure symbols and must be less than 512 bytes in size";
         public const string MustBeBase64Encoded = "Must be base64 encoded";
 
         public static Regex AzureKeyInvalidSymbolsRegex = new Regex(@"[\/\\#?\n\r\t\u0000-\u001F\u007F-\u009F]", 
@@ -43,12 +44,15 @@ namespace Lykke.Service.BlockchainApi.Sdk.Validation
                 return false;
             }
         }
-    
+
         public static bool ValidateAzureKey(string value)
         {
             return
                 !string.IsNullOrEmpty(value) &&
-                !AzureKeyInvalidSymbolsRegex.IsMatch(value);
+                !AzureKeyInvalidSymbolsRegex.IsMatch(value) &&
+                // we use compound keys, so restrict length only to half of allowed 1 kB,
+                // that "ought to be enough for anybody"
+                Encoding.UTF8.GetBytes(value).Length < 512;
         }
     }
 }
