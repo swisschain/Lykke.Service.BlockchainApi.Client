@@ -71,7 +71,7 @@ namespace Lykke.Service.BlockchainApi.Sdk.PeriodicalHandlers
                         !Validators.ValidateAzureKey(a.TransactionHash);
 
                     if (containsInvalidSymbols)
-                        _log.Warning("Invalid Azure symbols in action", context: a);
+                        _log.Warning("Invalid Azure symbols and/or length in action", context: a);
 
                     return !containsInvalidSymbols;
                 })
