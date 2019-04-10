@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AzureStorage;
 using AzureStorage.Tables;
+using Common.Log;
 using Lykke.Common.Log;
 using Lykke.SettingsReader;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -16,12 +17,14 @@ namespace Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets
         readonly INoSQLTableStorage<DepositActionEntity> _actionStorage;
         readonly INoSQLTableStorage<DepositWalletEntity> _walletStorage;
         readonly INoSQLTableStorage<DepositWalletBalanceEntity> _walletBalanceStorage;
+        readonly ILog _log;
 
         public DepositWalletRepository(IReloadingManager<string> connectionStringManager, ILogFactory logFactory)
         {
             _actionStorage = AzureTableStorage<DepositActionEntity>.Create(connectionStringManager, "DepositActions", logFactory);
             _walletStorage = AzureTableStorage<DepositWalletEntity>.Create(connectionStringManager, "DepositWallets", logFactory);
             _walletBalanceStorage = AzureTableStorage<DepositWalletBalanceEntity>.Create(connectionStringManager, "DepositWalletBalances", logFactory);
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task<bool> TryObserveAsync(string address) =>
@@ -122,6 +125,10 @@ namespace Lykke.Service.BlockchainApi.Sdk.Domain.DepositWallets
 
                     await UpsertActionAsync(action.Address, action.AssetId, 
                         action.BlockNumber, action.TransactionHash, action.ActionId, action.Amount, operationId);
+                }
+                else
+                {
+                    _log.Info("Not observed address", action);
                 }
             }
 
