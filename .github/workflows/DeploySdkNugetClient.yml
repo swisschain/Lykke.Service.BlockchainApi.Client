@@ -1,4 +1,4 @@
-name: Deploy sdk packet
+name: Deploy client packet
 
 on:
   push:
