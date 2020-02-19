@@ -2,7 +2,7 @@ name: Deploy sdk packet
 
 on:
   push:
-    tags: "contract-*"
+    tags: "*"
 
 jobs:
   build:
