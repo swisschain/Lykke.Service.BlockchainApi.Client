@@ -9,7 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.BlockchainApi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{74E9B274-A8C4-4B76-9A78-59C6CBB8EBCB}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\DeploySdkNuget.yml = .github\workflows\DeploySdkNuget.yml
+		.github\workflows\DeploySdkNugetClient.yml = .github\workflows\DeploySdkNugetClient.yml
+		.github\workflows\DeploySdkNugetContract.yml = .github\workflows\DeploySdkNugetContract.yml
 		.github\workflows\ValidateCommit.yml = .github\workflows\ValidateCommit.yml
 	EndProjectSection
 EndProject

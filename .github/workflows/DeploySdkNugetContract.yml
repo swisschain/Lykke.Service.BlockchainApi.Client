@@ -2,7 +2,7 @@ name: Deploy sdk packet
 
 on:
   push:
-    tags: "*"
+    tags: "contract-*"
 
 jobs:
   build:
@@ -18,6 +18,6 @@ jobs:
     - name: Build with dotnet
       run: dotnet build --configuration Release
     - name: Create the package
-      run: dotnet pack --configuration Release src/Lykke.Service.BlockchainApi.Client /p:Version=${GITHUB_REF#refs/tags/}
+      run: dotnet pack --configuration Release src/Lykke.Service.BlockchainApi.Contract /p:Version=${GITHUB_REF#refs/tags/contract-}
     - name: Publish the package to GPR
-      run: dotnet nuget push src/Lykke.Service.BlockchainApi.Client/bin/Release/*.nupkg -s "https://api.nuget.org/v3/index.json" -k ${{ secrets.NUGET_TOCKEN }}
+      run: dotnet nuget push src/Lykke.Service.BlockchainApi.Contract/bin/Release/*.nupkg -s "https://api.nuget.org/v3/index.json" -k ${{ secrets.NUGET_TOCKEN }}

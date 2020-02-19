@@ -2,17 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Authors>Lykke</Authors>
-    <Company>Lykke</Company>
-    <Product>Lykke.Service.BlockchainApi.Contract</Product>
-    <Description>Contract for generic Lykke.Service.BlockchainApi</Description>
+    <Authors>Swisschain</Authors>
+    <Company>Swisschain</Company>
+    <Product>Swisschain.BlockchainApi.Contract</Product>
+    <Description>Contract for generic Swisschain.BlockchainApi.Contract</Description>
     <PackageLicenseUrl>https://github.com/LykkeCity/Lykke.Service.BlockchainApi.Client/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/LykkeCity/Lykke.Service.BlockchainApi.Client</PackageProjectUrl>
+    <PackageProjectUrl></PackageProjectUrl>
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/14153330?v=3&amp;s=200</PackageIconUrl>
-    <RepositoryUrl>https://github.com/LykkeCity/Lykke.Service.BlockchainApi.Client.git</RepositoryUrl>
+    <RepositoryUrl></RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>Lykke</PackageTags>
     <Version>13.2.0</Version>
+    <PackageId>Swisschain.BlockchainApi.Contract</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
