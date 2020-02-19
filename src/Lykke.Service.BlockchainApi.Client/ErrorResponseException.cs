@@ -28,7 +28,7 @@ namespace Lykke.Service.BlockchainApi.Client
         public HttpStatusCode StatusCode { get; }
 
         public ErrorResponseException(BlockchainErrorResponse error, ApiException inner) :
-            base(error.GetSummaryMessage(), inner)
+            base(error.ErrorMessage, inner)
         {
             Error = error;
             StatusCode = inner.StatusCode;

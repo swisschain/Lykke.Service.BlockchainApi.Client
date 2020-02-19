@@ -4,15 +4,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Common.Log;
 using JetBrains.Annotations;
-using Lykke.Common.Api.Contract.Responses;
-using Lykke.Common.Log;
 using Lykke.Service.BlockchainApi.Client.Models;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Common;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
-using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.Extensions.Logging;
 using Refit;
 
 namespace Lykke.Service.BlockchainApi.Client
@@ -28,19 +25,20 @@ namespace Lykke.Service.BlockchainApi.Client
         private ApiRunner _runner;
 
         /// <param name="timeout">Timeout affects all request. Leave it null if you do not want timeout.</param>
-        private void InitBlockchainApiClient(ILog log, string hostUrl, int retriesCount = 5,
+        private void InitBlockchainApiClient(ILoggerFactory log, string hostUrl, int retriesCount = 5,
             TimeSpan? timeout = null, HttpMessageHandler messageHandler = null)
         {
             HostUrl = hostUrl ?? throw new ArgumentNullException(nameof(hostUrl));
 
-            _httpClient = new HttpClient(new HttpErrorLoggingHandler(log, messageHandler))
+            _httpClient = new HttpClient(new HttpErrorLoggingHandler(
+                log.CreateLogger<HttpErrorLoggingHandler>(), messageHandler))
             {
                 BaseAddress = new Uri(hostUrl),
                 DefaultRequestHeaders =
                 {
                     {
                         "User-Agent",
-                        $"{PlatformServices.Default.Application.ApplicationName}/{PlatformServices.Default.Application.ApplicationVersion}"
+                        $"SomeStrangeAgent/SomeMagicAgent"
                     }
                 }
             };
@@ -56,21 +54,12 @@ namespace Lykke.Service.BlockchainApi.Client
             _runner = new ApiRunner(retriesCount);
         }
 
-        [Obsolete("Please, use the overload which consumes ILogFactory.")]
-        public BlockchainApiClient(ILog log, string hostUrl, int retriesCount = 5)
-        {
-            if (log == null)
-                throw new ArgumentNullException(nameof(log));
-
-            InitBlockchainApiClient(log, hostUrl, retriesCount,  null, null);
-        }
-
-        public BlockchainApiClient(ILogFactory logFactory, string hostUrl, int retriesCount = 5)
+        public BlockchainApiClient(ILoggerFactory logFactory, string hostUrl, int retriesCount = 5)
         {
             if (logFactory == null)
                 throw new ArgumentNullException(nameof(logFactory));
 
-            InitBlockchainApiClient(logFactory.CreateLog(this), hostUrl, retriesCount, null, null);
+            InitBlockchainApiClient(logFactory, hostUrl, retriesCount, null, null);
         }
 
         /// <summary>
@@ -78,21 +67,12 @@ namespace Lykke.Service.BlockchainApi.Client
         /// </summary>
         /// <param name="timeout">If operation takes more time than stated in timeout variable,
         /// <exception cref="TaskCanceledException ">TaskCanceledException </exception>will be thrown</param>
-        public BlockchainApiClient(ILogFactory logFactory, string hostUrl, TimeSpan timeout, int retriesCount = 5)
+        public BlockchainApiClient(ILoggerFactory logFactory, string hostUrl, TimeSpan timeout, int retriesCount = 5)
         {
             if (logFactory == null)
                 throw new ArgumentNullException(nameof(logFactory));
 
-            InitBlockchainApiClient(logFactory.CreateLog(this), hostUrl, retriesCount, timeout, null);
-        }
-
-        internal BlockchainApiClient(ILogFactory logFactory, string hostUrl, int retriesCount = 5, 
-            TimeSpan? timeout = null, HttpMessageHandler handler = null)
-        {
-            if (logFactory == null)
-                throw new ArgumentNullException(nameof(logFactory));
-
-            InitBlockchainApiClient(logFactory.CreateLog(this), hostUrl, retriesCount, timeout, handler);
+            InitBlockchainApiClient(logFactory, hostUrl, retriesCount, timeout, null);
         }
 
 

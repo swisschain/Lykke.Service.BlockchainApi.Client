@@ -1,17 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2010
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.BlockchainApi.Client", "src\Lykke.Service.BlockchainApi.Client\Lykke.Service.BlockchainApi.Client.csproj", "{196FD6C2-7164-4FF0-9FC4-5FBF0E0D68EA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.BlockchainApi.Contract", "src\Lykke.Service.BlockchainApi.Contract\Lykke.Service.BlockchainApi.Contract.csproj", "{87E0672C-B48A-46CE-8DA8-2BA6D3D91220}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Service.BlockchainApi.Contract.Tests", "tests\Lykke.Service.BlockchainApi.Contract.Tests\Lykke.Service.BlockchainApi.Contract.Tests.csproj", "{D491BB6C-9E9B-485F-AAD1-CDF686355102}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B8554459-FB64-47F8-B046-2992D7503F36}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Service.BlockchainApi.Sdk", "src\Lykke.Service.BlockchainApi.Sdk\Lykke.Service.BlockchainApi.Sdk.csproj", "{D37C1A45-3F95-4357-B707-F163F823D9F2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{74E9B274-A8C4-4B76-9A78-59C6CBB8EBCB}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\DeploySdkNuget.yml = .github\workflows\DeploySdkNuget.yml
+		.github\workflows\ValidateCommit.yml = .github\workflows\ValidateCommit.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,20 +27,9 @@ Global
 		{87E0672C-B48A-46CE-8DA8-2BA6D3D91220}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87E0672C-B48A-46CE-8DA8-2BA6D3D91220}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87E0672C-B48A-46CE-8DA8-2BA6D3D91220}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D491BB6C-9E9B-485F-AAD1-CDF686355102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D491BB6C-9E9B-485F-AAD1-CDF686355102}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D491BB6C-9E9B-485F-AAD1-CDF686355102}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D491BB6C-9E9B-485F-AAD1-CDF686355102}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D37C1A45-3F95-4357-B707-F163F823D9F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D37C1A45-3F95-4357-B707-F163F823D9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D37C1A45-3F95-4357-B707-F163F823D9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D37C1A45-3F95-4357-B707-F163F823D9F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{D491BB6C-9E9B-485F-AAD1-CDF686355102} = {B8554459-FB64-47F8-B046-2992D7503F36}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9EED58B4-7950-4543-98C4-9BFE023B291C}

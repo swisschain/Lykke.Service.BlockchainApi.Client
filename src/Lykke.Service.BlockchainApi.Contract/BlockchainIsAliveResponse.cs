@@ -1,6 +1,5 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Lykke.Common.Api.Contract.Responses;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
